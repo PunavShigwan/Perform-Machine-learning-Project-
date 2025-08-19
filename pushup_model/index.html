@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Push-up Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .upload-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 400px;
+      margin: 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    input[type="file"] {
+      display: block;
+      margin: 20px auto;
+    }
+
+    button {
+      background: #ff9800;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #e68900;
+    }
+
+    .loader {
+      display: none;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ff9800;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result {
+      margin-top: 20px;
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏋️ Push-up Analysis App</h1>
+  <div class="upload-box">
+    <form id="uploadForm">
+      <input type="file" id="videoFile" name="video" accept="video/*" required>
+      <button type="submit">Upload & Analyze</button>
+    </form>
+    <div class="loader" id="loader"></div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const loader = document.getElementById("loader");
+    const resultBox = document.getElementById("result");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById("videoFile");
+      if (!fileInput.files.length) {
+        alert("Please select a video!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("video", fileInput.files[0]);
+
+      loader.style.display = "block";
+      resultBox.innerHTML = "";
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+        loader.style.display = "none";
+
+        if (data.error) {
+          resultBox.innerHTML = `<p style="color: red;">❌ Error: ${data.error}</p>`;
+        } else {
+          resultBox.innerHTML = `
+            <h3>✅ Analysis Complete</h3>
+            <p><b>Reps Counted:</b> ${data.count}</p>
+          `;
+        }
+      } catch (err) {
+        loader.style.display = "none";
+        resultBox.innerHTML = `<p style="color: red;">⚠️ Failed to connect to server.</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
