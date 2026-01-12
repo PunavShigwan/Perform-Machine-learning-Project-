@@ -2,3 +2,8 @@ pushup_dataset/
 pushup_frames/
 dataset_video/
 frames/
+dataset_video
+frames
+data/clean_jerk/sample_videos/input.mp4
+data/clean_jerk/frames_30fps/
+data
