@@ -7,3 +7,6 @@ frames
 data/clean_jerk/sample_videos/input.mp4
 data/clean_jerk/frames_30fps/
 data
+frames_30fps
+frames_30fps_front/
+cj_sorted_output/
