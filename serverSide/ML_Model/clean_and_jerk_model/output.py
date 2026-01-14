@@ -7,7 +7,7 @@ import os
 # =====================================================
 # CONFIG
 # =====================================================
-VIDEO_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\sample_videos\op1.mp4"
+VIDEO_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\sample_videos\input1.mp4"
 MODEL_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\models\best_model.pkl"
 LABEL_MAP_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\models\label_map.pkl"
 
