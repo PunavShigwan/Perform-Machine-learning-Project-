@@ -1,49 +1,21 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.api.pushup_api import router as pushup_router
-from app.utils.logger import get_logger
 
-logger = get_logger(__name__)
+print("🚀 Starting FastAPI application...")
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="Fitness ML API",
-    description="API for analyzing fitness exercises using machine learning",
-    version="1.0.0"
-)
+try:
+    from app.api.pushup_api import router as pushup_router
+    print("✅ pushup_api imported successfully")
+except Exception as e:
+    print("❌ ERROR importing pushup_api:", e)
+    raise e
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Exercise AI Backend")
 
-# Include routers
+@app.get("/")
+def root():
+    print("📡 Root endpoint hit")
+    return {"status": "API is running"}
+
 app.include_router(pushup_router)
 
-# Root endpoint
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {
-        "message": "Fitness ML API",
-        "version": "1.0.0",
-        "endpoints": {
-            "pushup": "/pushup/analyze",
-            "health": "/pushup/health"
-        }
-    }
-
-
-@app.get("/health")
-async def health():
-    """Global health check"""
-    return {"status": "healthy"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+print("✅ Router registered")
