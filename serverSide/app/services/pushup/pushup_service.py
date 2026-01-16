@@ -6,15 +6,16 @@ import os
 
 print("📦 Loading pushup_service module...")
 
+# =====================================================
+# 🔥 YOUR REAL MODEL PATH (CONFIRMED & FIXED)
+# =====================================================
 MODEL_PATH = r"C:\major_project\serverSide\ML_Model\pushup_model\saved_models\GradientBoosting.pkl"
 
+print("📍 MODEL PATH SET TO:", MODEL_PATH)
 
-print("📍 MODEL PATH RESOLVED TO:", MODEL_PATH)
-
-
-# ----------------------------
-# SAFE MODEL LOADING (LAZY)
-# ----------------------------
+# -----------------------------------------------------
+# SAFE (LAZY) MODEL LOADING
+# -----------------------------------------------------
 model = None
 
 def get_model():
@@ -25,18 +26,18 @@ def get_model():
             raise FileNotFoundError(f"❌ Model not found: {MODEL_PATH}")
         with open(MODEL_PATH, "rb") as f:
             model = pickle.load(f)
-        print("✅ Model loaded")
+        print("✅ Model loaded successfully")
     return model
 
 
-# ----------------------------
+# -----------------------------------------------------
 # HELPER FUNCTIONS
-# ----------------------------
+# -----------------------------------------------------
 def calculate_angle(a, b, c):
     a = np.array([a.x, a.y])
     b = np.array([b.x, b.y])
     c = np.array([c.x, c.y])
-    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+    radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
     angle = abs(radians * 180.0 / np.pi)
     return 360 - angle if angle > 180 else angle
 
@@ -47,17 +48,18 @@ def landmarks_to_features(landmarks):
     ).flatten().reshape(1, -1)
 
 
-# ----------------------------
-# MAIN ANALYSIS FUNCTION
-# ----------------------------
+# -----------------------------------------------------
+# MAIN VIDEO ANALYSIS FUNCTION
+# -----------------------------------------------------
 def analyze_pushup_video(input_path, output_path):
     try:
         print("🎬 Starting pushup analysis")
-        print("📂 Input:", input_path)
-        print("📂 Output:", output_path)
+        print("📂 Input video:", input_path)
+        print("📂 Output video:", output_path)
 
         model = get_model()
 
+        # MediaPipe setup (INSIDE function – important)
         mp_pose = mp.solutions.pose
         mp_drawing = mp.solutions.drawing_utils
 
@@ -68,6 +70,7 @@ def analyze_pushup_video(input_path, output_path):
             min_tracking_confidence=0.5
         )
 
+        # Open input video
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise RuntimeError("❌ Failed to open input video")
@@ -80,13 +83,17 @@ def analyze_pushup_video(input_path, output_path):
             fps = 25
             print("⚠ FPS was 0, defaulting to 25")
 
-        print(f"🎥 Video: {width}x{height} @ {fps}fps")
+        print(f"🎥 Video properties: {width}x{height} @ {fps} FPS")
 
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        # -------------------------------------------------
+        # ✅ MP4 VIDEO WRITER (FIXED)
+        # -------------------------------------------------
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
+        print("🎥 VideoWriter opened:", out.isOpened())
         if not out.isOpened():
-            raise RuntimeError("❌ VideoWriter failed to open")
+            raise RuntimeError("❌ VideoWriter failed to open (mp4v)")
 
         pushup_count = 0
         state = "UP"
@@ -96,7 +103,7 @@ def analyze_pushup_video(input_path, output_path):
         while True:
             ret, frame = cap.read()
             if not ret:
-                print("ℹ End of video")
+                print("ℹ End of video reached")
                 break
 
             frame_no += 1
@@ -107,6 +114,7 @@ def analyze_pushup_video(input_path, output_path):
                 landmarks = results.pose_landmarks.landmark
                 features = landmarks_to_features(landmarks)
 
+                # Feature safety check
                 if features.shape[1] != model.n_features_in_:
                     print("⚠ Feature mismatch, skipping frame")
                     out.write(frame)
@@ -127,12 +135,12 @@ def analyze_pushup_video(input_path, output_path):
                 elif state == "DOWN" and label == 1:
                     pushup_count += 1
                     state = "UP"
-                    print(f"🏋️ Rep counted: {pushup_count}")
+                    print(f"🏋️ Pushup counted: {pushup_count}")
 
                 cv2.putText(frame, f"Pushups: {pushup_count}",
-                            (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+                            (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
                 cv2.putText(frame, f"Form: {score}%",
-                            (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,215,0), 2)
+                            (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 215, 0), 2)
 
                 mp_drawing.draw_landmarks(
                     frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS
@@ -150,6 +158,7 @@ def analyze_pushup_video(input_path, output_path):
         avg_form = int(sum(form_scores) / len(form_scores)) if form_scores else 0
 
         print("✅ Analysis finished successfully")
+        print("🏁 Total pushups:", pushup_count)
 
         return {
             "pushup_count": pushup_count,
