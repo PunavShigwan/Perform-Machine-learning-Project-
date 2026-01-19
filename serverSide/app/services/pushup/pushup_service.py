@@ -3,170 +3,240 @@ import mediapipe as mp
 import numpy as np
 import pickle
 import os
+import time
+from collections import deque
 
-print("📦 Loading pushup_service module...")
+print("📦 Loading pushup_service...")
 
 # =====================================================
-# 🔥 YOUR REAL MODEL PATH (CONFIRMED & FIXED)
+# MODEL PATH
 # =====================================================
 MODEL_PATH = r"C:\major_project\serverSide\ML_Model\pushup_model\saved_models\GradientBoosting.pkl"
 
-print("📍 MODEL PATH SET TO:", MODEL_PATH)
+# =====================================================
+# CONFIG
+# =====================================================
+ELBOW_DOWN = 90
+ELBOW_UP = 155
+SMOOTHING_WINDOW = 5
+FRAME_CONFIRM = 2
 
-# -----------------------------------------------------
-# SAFE (LAZY) MODEL LOADING
-# -----------------------------------------------------
-model = None
+# =====================================================
+# LAZY MODEL LOAD
+# =====================================================
+_model = None
 
 def get_model():
-    global model
-    if model is None:
+    global _model
+    if _model is None:
         print("📦 Loading ML model...")
         if not os.path.exists(MODEL_PATH):
             raise FileNotFoundError(f"❌ Model not found: {MODEL_PATH}")
         with open(MODEL_PATH, "rb") as f:
-            model = pickle.load(f)
-        print("✅ Model loaded successfully")
-    return model
+            _model = pickle.load(f)
+        print("✅ Pushup ML model loaded")
+    return _model
 
+# =====================================================
+# MEDIAPIPE
+# =====================================================
+mp_pose = mp.solutions.pose
+mp_draw = mp.solutions.drawing_utils
 
-# -----------------------------------------------------
+# =====================================================
 # HELPER FUNCTIONS
-# -----------------------------------------------------
-def calculate_angle(a, b, c):
+# =====================================================
+def angle(a, b, c):
     a = np.array([a.x, a.y])
     b = np.array([b.x, b.y])
     c = np.array([c.x, c.y])
-    radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-    angle = abs(radians * 180.0 / np.pi)
-    return 360 - angle if angle > 180 else angle
+    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+    ang = abs(np.degrees(radians))
+    return 360 - ang if ang > 180 else ang
 
 
-def landmarks_to_features(landmarks):
-    return np.array(
-        [[lm.x, lm.y, lm.z, lm.visibility] for lm in landmarks]
-    ).flatten().reshape(1, -1)
+def elbow_angle(lm):
+    return angle(lm[11], lm[13], lm[15])
 
 
-# -----------------------------------------------------
-# MAIN VIDEO ANALYSIS FUNCTION
-# -----------------------------------------------------
+def body_angle(lm):
+    return angle(lm[11], lm[23], lm[27])
+
+
+def is_pushup_position(lm):
+    body_ang = body_angle(lm)
+    shoulder, hip, wrist = lm[11], lm[23], lm[15]
+    return (
+        160 <= body_ang <= 200 and
+        wrist.y > shoulder.y and
+        abs(hip.y - shoulder.y) < 0.15
+    )
+
+
+def form_score(lm):
+    body_ang = body_angle(lm)
+    return int(np.clip(100 - abs(180 - body_ang) * 1.8, 0, 100))
+
+
+def rep_rating(score):
+    if score >= 85:
+        return "Excellent", 2
+    elif score >= 70:
+        return "Good", 1
+    elif score >= 50:
+        return "Poor", 0
+    else:
+        return "Bad", -2
+
+
+def fatigue_index(log):
+    if len(log) < 2:
+        return 0
+
+    form_drop = max(0, log[0]["form"] - log[-1]["form"])
+    time_increase = max(0, log[-1]["time"] - log[0]["time"]) * 10
+    bad_ratio = sum(1 for r in log if r["form"] < 50) / len(log) * 100
+
+    fatigue = (
+        0.5 * form_drop +
+        0.3 * time_increase +
+        0.2 * bad_ratio
+    )
+    return int(np.clip(fatigue, 0, 100))
+
+
+def fatigue_level(v):
+    if v < 30:
+        return "LOW"
+    elif v < 60:
+        return "MODERATE"
+    else:
+        return "HIGH"
+
+# =====================================================
+# MAIN SERVICE FUNCTION
+# =====================================================
 def analyze_pushup_video(input_path, output_path):
-    try:
-        print("🎬 Starting pushup analysis")
-        print("📂 Input video:", input_path)
-        print("📂 Output video:", output_path)
 
-        model = get_model()
+    get_model()
 
-        # MediaPipe setup (INSIDE function – important)
-        mp_pose = mp.solutions.pose
-        mp_drawing = mp.solutions.drawing_utils
+    cap = cv2.VideoCapture(input_path)
+    if not cap.isOpened():
+        raise RuntimeError("❌ Cannot open input video")
 
-        print("🧠 Initializing MediaPipe Pose")
-        pose = mp_pose.Pose(
-            static_image_mode=False,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
-        )
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    if fps <= 0:
+        fps = 25
 
-        # Open input video
-        cap = cv2.VideoCapture(input_path)
-        if not cap.isOpened():
-            raise RuntimeError("❌ Failed to open input video")
+    print("🎬 Video opened successfully")
+    print("🎞 Resolution:", w, "x", h, "FPS:", fps)
 
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
+    if not out.isOpened():
+        raise RuntimeError("❌ VideoWriter failed to open")
 
-        if fps == 0:
-            fps = 25
-            print("⚠ FPS was 0, defaulting to 25")
+    pose = mp_pose.Pose(
+        static_image_mode=False,
+        min_detection_confidence=0.3,
+        min_tracking_confidence=0.3
+    )
 
-        print(f"🎥 Video properties: {width}x{height} @ {fps} FPS")
+    state = "UP"
+    pushups = 0
+    predicted_max = 5
 
-        # -------------------------------------------------
-        # ✅ MP4 VIDEO WRITER (FIXED)
-        # -------------------------------------------------
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    elbow_buf = deque(maxlen=SMOOTHING_WINDOW)
+    down_frames = 0
+    up_frames = 0
+    down_scores = []
+    valid_down = False
 
-        print("🎥 VideoWriter opened:", out.isOpened())
-        if not out.isOpened():
-            raise RuntimeError("❌ VideoWriter failed to open (mp4v)")
+    # ✅ NEW: per-rep detailed log
+    rep_log = []
+    last_rep_time = None
 
-        pushup_count = 0
-        state = "UP"
-        form_scores = []
-        frame_no = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret or frame is None:
+            break
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                print("ℹ End of video reached")
-                break
+        res = pose.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-            frame_no += 1
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose.process(rgb)
+        if res.pose_landmarks:
+            lm = res.pose_landmarks.landmark
 
-            if results.pose_landmarks:
-                landmarks = results.pose_landmarks.landmark
-                features = landmarks_to_features(landmarks)
+            elbow_buf.append(elbow_angle(lm))
+            smooth_elbow = np.mean(elbow_buf)
+            score = form_score(lm)
 
-                # Feature safety check
-                if features.shape[1] != model.n_features_in_:
-                    print("⚠ Feature mismatch, skipping frame")
-                    out.write(frame)
-                    continue
+            if smooth_elbow < ELBOW_DOWN:
+                down_frames += 1
+                up_frames = 0
+            elif smooth_elbow > ELBOW_UP:
+                up_frames += 1
+                down_frames = 0
 
-                label = model.predict(features)[0]
+            if state == "UP" and down_frames >= FRAME_CONFIRM:
+                state = "DOWN"
+                down_scores = []
+                valid_down = is_pushup_position(lm)
 
-                score = int(
-                    max(0, 100 - abs(180 - calculate_angle(
-                        landmarks[11], landmarks[23], landmarks[27]
-                    )) * 2)
-                )
+            if state == "DOWN":
+                down_scores.append(score)
 
-                form_scores.append(score)
+            if state == "DOWN" and up_frames >= FRAME_CONFIRM:
+                if valid_down:
+                    pushups += 1
 
-                if state == "UP" and label == 0:
-                    state = "DOWN"
-                elif state == "DOWN" and label == 1:
-                    pushup_count += 1
-                    state = "UP"
-                    print(f"🏋️ Pushup counted: {pushup_count}")
+                    now = time.time()
+                    rep_time = now - last_rep_time if last_rep_time else 1.0
+                    last_rep_time = now
 
-                cv2.putText(frame, f"Pushups: {pushup_count}",
-                            (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-                cv2.putText(frame, f"Form: {score}%",
-                            (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 215, 0), 2)
+                    rep_form = int((np.mean(down_scores) + score) / 2)
+                    rating, delta = rep_rating(rep_form)
+                    predicted_max = max(5, predicted_max + delta)
 
-                mp_drawing.draw_landmarks(
-                    frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS
-                )
+                    # ✅ STORE FORM % PER REP
+                    rep_log.append({
+                        "rep": pushups,
+                        "form": rep_form,
+                        "rating": rating,
+                        "time": round(rep_time, 2)
+                    })
 
-            out.write(frame)
+                state = "UP"
 
-            if frame_no % 50 == 0:
-                print(f"⏱ Processed {frame_no} frames")
+            fatigue = fatigue_index(rep_log)
 
-        cap.release()
-        out.release()
-        pose.close()
+            cv2.putText(frame, f"Pushups: {pushups}", (30, 40),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-        avg_form = int(sum(form_scores) / len(form_scores)) if form_scores else 0
+            cv2.putText(frame, f"Fatigue: {fatigue}% ({fatigue_level(fatigue)})",
+                        (30, 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
-        print("✅ Analysis finished successfully")
-        print("🏁 Total pushups:", pushup_count)
+            mp_draw.draw_landmarks(
+                frame,
+                res.pose_landmarks,
+                mp_pose.POSE_CONNECTIONS
+            )
 
-        return {
-            "pushup_count": pushup_count,
-            "average_form": avg_form,
-            "estimated_max_range": "13 - 17",
-            "output_video_path": output_path
-        }
+        out.write(frame)
 
-    except Exception as e:
-        print("🔥 FATAL ERROR IN ANALYSIS:", e)
-        raise e
+    cap.release()
+    out.release()
+    pose.close()
+
+    final_fatigue = fatigue_index(rep_log)
+
+    return {
+        "pushup_count": pushups,
+        "fatigue": final_fatigue,
+        "fatigue_level": fatigue_level(final_fatigue),
+        "estimated_range": f"{predicted_max-2} - {predicted_max+2}",
+        "reps": rep_log,                 # ✅ NEW FIELD
+        "output_video_path": output_path
+    }
