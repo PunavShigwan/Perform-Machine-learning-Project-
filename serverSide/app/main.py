@@ -9,13 +9,13 @@ except Exception as e:
     print("❌ ERROR importing pushup_api:", e)
     raise e
 
-app = FastAPI(title="Exercise AI Backend")
+app = FastAPI(title="Pushup AI Backend")
 
 @app.get("/")
 def root():
-    print("📡 Root endpoint hit")
-    return {"status": "API is running"}
+    return {"status": "Pushup API running"}
 
-app.include_router(pushup_router)
+# ONLY pushup
+app.include_router(pushup_router, prefix="/pushup")
 
-print("✅ Router registered")
+print("✅ Pushup router registered")
