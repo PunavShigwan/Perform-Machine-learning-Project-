@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import time
 import random
@@ -98,7 +99,13 @@ st.markdown("<div class='custom-header'>🏋️ Pushup Prediction Trainer</div>"
 
 
 # ===== Load Gradient Boosting Model =====
-MODEL_PATH = r"C:\major_project\pushup_model\saved_models\GradientBoosting.pkl"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "saved_models",
+    "GradientBoosting.pkl"
+)
 with open(MODEL_PATH, "rb") as f:
     model = pickle.load(f)
 

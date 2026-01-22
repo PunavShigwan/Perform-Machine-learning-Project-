@@ -1,0 +1,27 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}PerForm{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>PerForm : A ML Based Exercise Assistant</h1>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>&copy; PerForm : A ML Based Exercise Assistant</p>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

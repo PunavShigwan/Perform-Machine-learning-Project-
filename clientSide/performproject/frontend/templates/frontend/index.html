@@ -1,0 +1,24 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Home - PerForm Trainer{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="card hero-card">
+    <div class="hero-left">
+      <h2 class="hero-title">Welcome to PerForm</h2>
+      <p class="hero-sub">A ML based exercise assistant — track form, count reps, and get feedback.</p>
+      <a class="btn-primary" href="{% url 'frontend:exercises' %}">Exercises</a>
+    </div>
+
+    <div class="hero-right">
+      <!-- simple motif/design: SVG triangles / or use an image later -->
+      <svg width="220" height="140" viewBox="0 0 220 140" aria-hidden="true">
+        <rect x="0" y="0" width="220" height="140" rx="12" fill="#15171f"/>
+        <circle cx="60" cy="50" r="28" fill="#10a37f" opacity="0.12"/>
+        <circle cx="160" cy="90" r="36" fill="#ffd900" opacity="0.08"/>
+      </svg>
+    </div>
+  </div>
+</div>
+{% endblock %}
