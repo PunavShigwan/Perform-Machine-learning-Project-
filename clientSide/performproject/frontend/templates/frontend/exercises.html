@@ -1,0 +1,21 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Exercises{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="card">
+    <h2 style="margin-bottom:12px">Choose an Exercise</h2>
+
+    <div class="ex-list">
+<a href="{% url 'frontend:pushup' %}" class="exercise-btn">Pushup</a>
+
+      <!-- inert buttons for now -->
+      <button class="exercise-btn inert" title="Coming soon">Squat</button>
+      <button class="exercise-btn inert" title="Coming soon">Deadlift</button>
+    </div>
+
+    <p class="muted" style="margin-top:14px">Pushup opens the interactive upload / camera trainer. Squat/Deadlift will be added soon.</p>
+  </div>
+</div>
+{% endblock %}
