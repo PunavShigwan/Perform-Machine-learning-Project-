@@ -1,0 +1,289 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Pushup Training{% endblock %}
+
+
+
+{% block content %}
+
+<h1 class="pushup-header">Pushup Training</h1>
+<div class="page-wrap">
+  <div class="card">
+    <label class="mode-label">Choose input mode:</label>
+
+    <div class="mode-row" role="tablist" aria-label="Choose input mode">
+      <label class="mode-option">
+        <input type="radio" name="input-mode" value="upload" checked>
+        <span class="fake-radio"></span>
+        <span class="mode-text">Upload Video</span>
+      </label>
+
+      <label class="mode-option">
+        <input type="radio" name="input-mode" value="camera">
+        <span class="fake-radio"></span>
+        <span class="mode-text">Use Camera</span>
+      </label>
+    </div>
+
+    <!-- UPLOAD SECTION -->
+    <div id="upload-section" class="upload-section">
+      <div id="dropzone" class="dropzone">
+        <div class="drop-left">
+          <!-- cloud SVG -->
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="#cfd6dc"/>
+            <path d="M9 13v3l2-2 2 2v-3" stroke="#1f2937" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+
+          <div class="drop-text">
+            <div class="drop-title">Drag and drop file here</div>
+            <div class="drop-sub">Limit 200MB per file • MP4, AVI, MOV, MPEG4</div>
+          </div>
+        </div>
+
+        <div class="drop-right">
+          <button id="browse-btn" class="browse-btn" type="button">Browse files</button>
+        </div>
+      </div>
+<div id="result-panel" class="card hidden" style="margin-top:16px">
+  <h3>Pushup Analysis</h3>
+
+  <p>🏋️ Total Pushups: <strong id="pushup-count">–</strong></p>
+  <p>📈 Predicted Max: <strong id="estimated-range">–</strong></p>
+  <p>🔥 Fatigue: <strong id="fatigue"></strong>
+     (<span id="fatigue-level"></span>)</p>
+
+  <h4>Per Rep Analysis</h4>
+  <table id="rep-table" border="1" width="100%">
+    <thead>
+      <tr>
+        <th>Rep</th>
+        <th>Form %</th>
+        <th>Rating</th>
+        <th>Time (s)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+  <h3>Pushup Analysis</h3>
+
+  <p>🏋️ Total Pushups: <strong id="pushup-count">–</strong></p>
+  <p>📈 Predicted Max: <strong id="estimated-range">–</strong></p>
+  <p>🔥 Fatigue: <strong id="fatigue"></strong> 
+     (<span id="fatigue-level"></span>)</p>
+
+  <h4>Per Rep Analysis</h4>
+  <table id="rep-table" border="1" width="100%">
+    <thead>
+      <tr>
+        <th>Rep</th>
+        <th>Form %</th>
+        <th>Rating</th>
+        <th>Time (s)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+</div>
+
+      <!-- hidden file input -->
+      <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
+      <div id="upload-feedback" class="upload-feedback">No file selected</div>
+
+      <!-- video preview plays immediately and loops -->
+      <div id="preview-wrap" class="preview-wrap hidden">
+        <video id="uploaded-video" autoplay loop muted playsinline></video>
+        <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
+      </div>
+    </div>
+
+    <!-- CAMERA SECTION -->
+    <div id="camera-section" class="camera-section hidden">
+      <div class="camera-wrap">
+        <video id="camera-stream" autoplay muted playsinline></video>
+      </div>
+      <div class="camera-hint">Your camera stream will appear here. Allow camera access when prompted.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+console.log("🔥 pushup.js loaded");
+
+/* DOM refs */
+const fileInput = document.getElementById('file-input');
+const dropzone = document.getElementById('dropzone');
+const browseBtn = document.getElementById('browse-btn');
+const uploadFeedback = document.getElementById('upload-feedback');
+const previewWrap = document.getElementById('preview-wrap');
+const uploadedVideo = document.getElementById('uploaded-video');
+const cameraSection = document.getElementById('camera-section');
+const uploadSection = document.getElementById('upload-section');
+const cameraStream = document.getElementById('camera-stream');
+const closeVideoBtn = document.getElementById('close-video-btn');
+
+const MAX_BYTES = 200 * 1024 * 1024; // 200MB
+const ACCEPTED_EXT = ['mp4','avi','mov','mpeg4','m4v','webm'];
+
+/* Mode toggle */
+document.querySelectorAll('input[name="input-mode"]').forEach(r => {
+  r.addEventListener('change', e => {
+    if (e.target.value === 'upload') {
+      uploadSection.classList.remove('hidden');
+      cameraSection.classList.add('hidden');
+      stopCamera();
+    } else {
+      uploadSection.classList.add('hidden');
+      cameraSection.classList.remove('hidden');
+      startCamera();
+    }
+  });
+});
+
+/* Dropzone */
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+browseBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (file) handleFile(file);
+});
+
+/* MAIN HANDLER */
+function handleFile(file) {
+  console.log("📤 handleFile called:", file);
+
+  uploadFeedback.textContent = "Uploading & analyzing… ⏳";
+
+  if (file.size > MAX_BYTES) {
+    alert('File too large — max 200MB.');
+    return;
+  }
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!ACCEPTED_EXT.includes(ext)) {
+    alert('Invalid file type.');
+    return;
+  }
+
+  // preview immediately
+  uploadedVideo.src = URL.createObjectURL(file);
+  previewWrap.classList.remove('hidden');
+  uploadedVideo.play().catch(()=>{});
+
+  const fd = new FormData();
+  fd.append('video-blob', file, file.name);
+
+  fetch("{% url 'frontend:upload_video_ajax' %}", {
+    method: "POST",
+    body: fd
+  })
+  .then(res => {
+    console.log("📡 response status:", res.status);
+    return res.json();
+  })
+  .then(data => {
+    console.log("✅ server data:", data);
+
+    if (!data.ok) {
+      uploadFeedback.textContent = "❌ Error: " + (data.error || "Unknown");
+      alert("Error from server:\n" + (data.error || "Unknown"));
+      return;
+    }
+
+    const r = data.result;
+    uploadFeedback.textContent = "✅ Analysis complete";
+
+// 🧠 new ML results
+
+
+// Main metrics
+document.getElementById("pushup-count").textContent = r.pushup_count;
+document.getElementById("estimated-range").textContent = r.estimated_range;
+document.getElementById("fatigue").textContent = r.fatigue;
+document.getElementById("fatigue-level").textContent = r.fatigue_level;
+
+// Rep-wise table
+const tbody = document.querySelector("#rep-table tbody");
+tbody.innerHTML = "";
+
+(r.reps || []).forEach(rep => {
+
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${rep.rep}</td>
+    <td>${rep.form}%</td>
+    <td>${rep.rating}</td>
+    <td>${rep.time}</td>
+  `;
+  tbody.appendChild(row);
+});
+
+// Show result panel
+document.getElementById("result-panel").classList.remove("hidden");
+
+uploadFeedback.textContent = "✅ Analysis complete";
+
+
+// 🎥 show processed video (skeleton overlay)
+if (r.output_video_path) {
+  uploadedVideo.src = "/" + r.output_video_path.replace("app/", "");
+  uploadedVideo.play();
+} else {
+  console.warn("⚠️ No processed video path returned");
+}
+
+uploadedVideo.play();
+
+// 🧪 rep-wise data (check console for now)
+console.table(r.reps);
+
+// show panel
+document.getElementById("result-panel").classList.remove("hidden");
+
+document.getElementById("result-panel").classList.remove("hidden");
+
+  })
+  .catch(err => {
+    console.error("❌ fetch error:", err);
+    uploadFeedback.textContent = "❌ Upload failed (see console)";
+  });
+}
+
+/* Camera */
+let cameraStreamTrack = null;
+async function startCamera() {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: true });
+    cameraStream.srcObject = s;
+    cameraStreamTrack = s;
+  } catch {
+    alert("Camera access failed");
+  }
+}
+function stopCamera() {
+  if (cameraStreamTrack) {
+    cameraStreamTrack.getTracks().forEach(t => t.stop());
+    cameraStreamTrack = null;
+  }
+}
+
+/* Close preview */
+closeVideoBtn.addEventListener('click', () => {
+  uploadedVideo.pause();
+  uploadedVideo.src = '';
+  previewWrap.classList.add('hidden');
+  uploadFeedback.textContent = 'No file selected';
+});
+
+</script>
+{% endblock %}

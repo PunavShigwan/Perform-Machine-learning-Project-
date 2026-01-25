@@ -11,3 +11,32 @@ frames_30fps
 frames_30fps_front/
 cj_sorted_output/
 uploads/
+logs/
+temp_videos/
+
+# Virtual Environments
+venv/
+venv1/
+perform_env_312/
+.venv/
+ENV/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.installed.cfg
+*.egg
+*.sqlite3
+db.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
