@@ -134,7 +134,7 @@ def analyze_pushup_video(input_path, output_path):
     print("🎬 Video opened successfully")
     print("🎞 Resolution:", w, "x", h, "FPS:", fps)
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"avc1")
     out = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
     if not out.isOpened():
         raise RuntimeError("❌ VideoWriter failed to open")
@@ -239,5 +239,6 @@ def analyze_pushup_video(input_path, output_path):
         "fatigue_level": fatigue_level(final_fatigue),
         "estimated_range": f"{predicted_max-2} - {predicted_max+2}",
         "reps": rep_log,                 # ✅ NEW FIELD
-        "output_video_path": output_path
+        "output_video_path": os.path.abspath(output_path)
+
     }
