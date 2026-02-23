@@ -19,8 +19,12 @@ from app.schema.pushup_schema import PushupAnalysisResponse
 router = APIRouter(tags=["Pushup"])
 
 # Directories
-INPUT_DIR = os.path.join("app", "uploads", "input")
-OUTPUT_DIR = os.path.join("app", "uploads", "output")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# BASE_DIR → serverSide/
+
+INPUT_DIR = os.path.join(BASE_DIR, "app", "uploads", "input")
+OUTPUT_DIR = os.path.join(BASE_DIR, "app", "uploads", "output")
+
 
 os.makedirs(INPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -48,3 +52,4 @@ async def analyze_pushup(video: UploadFile = File(...)):
         print("🔥 PUSHUP API ERROR")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
