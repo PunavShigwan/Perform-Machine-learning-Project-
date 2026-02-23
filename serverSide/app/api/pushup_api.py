@@ -3,6 +3,8 @@ import shutil
 import os
 import uuid
 import traceback
+import json
+from pprint import pprint
 
 print("📦 Loading pushup_api...")
 
@@ -15,9 +17,18 @@ except Exception as e:
 
 from app.schema.pushup_schema import PushupAnalysisResponse
 
-# ❌ NO prefix here (prefix is applied in main.py)
 router = APIRouter(tags=["Pushup"])
 
+<<<<<<< HEAD
+# =====================================================
+# DIRECTORIES  (MUST MATCH main.py STATIC MOUNT)
+# =====================================================
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# -> .../app
+
+INPUT_DIR = os.path.join(BASE_DIR, "uploads", "input")
+OUTPUT_DIR = os.path.join(BASE_DIR, "uploads", "output")
+=======
 # Directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # BASE_DIR → serverSide/
@@ -25,31 +36,69 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 INPUT_DIR = os.path.join(BASE_DIR, "app", "uploads", "input")
 OUTPUT_DIR = os.path.join(BASE_DIR, "app", "uploads", "output")
 
+>>>>>>> 612cb4ad65b1804b12933212fb22bfd55194e00d
 
 os.makedirs(INPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+print("📁 INPUT_DIR:", INPUT_DIR)
+print("📁 OUTPUT_DIR:", OUTPUT_DIR)
+
+# =====================================================
+# API
+# =====================================================
 @router.post("/analyze", response_model=PushupAnalysisResponse)
 async def analyze_pushup(video: UploadFile = File(...)):
     try:
+        print("\n================ PUSHUP ANALYSIS START ================")
         print("📥 Video received:", video.filename)
 
-        safe_name = f"{uuid.uuid4()}_{video.filename}"
-        input_path = os.path.join(INPUT_DIR, safe_name)
-        output_path = os.path.join(OUTPUT_DIR, f"processed_{safe_name}")
+        uid = str(uuid.uuid4())
+        safe_name = f"{uid}_{video.filename}"
 
+        input_path = os.path.join(INPUT_DIR, safe_name)
+        processed_name = f"processed_{safe_name}"
+        output_path = os.path.join(OUTPUT_DIR, processed_name)
+
+        # Save input
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(video.file, buffer)
 
         print("🎥 Video saved to:", input_path)
 
+        # ===============================
+        # ANALYSIS (YOUR REAL ML PIPELINE)
+        # ===============================
         result = analyze_pushup_video(input_path, output_path)
 
-        print("✅ Returning analysis response")
+        # ===============================
+        # 🔥 ATTACH PUBLIC VIDEO URL
+        # ===============================
+        processed_url = f"http://localhost:8000/local-videos/{processed_name}"
+        result["processed_video_url"] = processed_url
+
+        # ===============================
+        # 🔥 PRINT RESPONSE TO TERMINAL
+        # ===============================
+        print("\n📤 API RESPONSE (DICT):")
+        pprint(result)
+
+        try:
+            json.dumps(result)
+            print("✅ Response is valid JSON")
+        except Exception as json_err:
+            print("❌ JSON SERIALIZATION ERROR:", json_err)
+
+        print("================ PUSHUP ANALYSIS END ================\n")
+
         return result
 
     except Exception as e:
-        print("🔥 PUSHUP API ERROR")
+        print("\n🔥 PUSHUP API ERROR")
         traceback.print_exc()
+<<<<<<< HEAD
+        raise HTTPException(status_code=500, detail=str(e))
+=======
         raise HTTPException(status_code=500, detail=str(e))
 
+>>>>>>> 612cb4ad65b1804b12933212fb22bfd55194e00d

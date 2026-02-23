@@ -11,7 +11,7 @@ print("📦 Loading pushup_service...")
 # =====================================================
 # MODEL PATH
 # =====================================================
-MODEL_PATH = r"C:\Users\rauls\Desktop\Perform-Machine-learning-Project-\serverSide\ML_Model\pushup_model\saved_models\GradientBoosting.pkl"
+MODEL_PATH = r"C:\major_project\serverSide\ML_Model\pushup_model\saved_models\GradientBoosting.pkl"
 
 
 # =====================================================
