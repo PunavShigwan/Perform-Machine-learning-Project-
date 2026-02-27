@@ -7,6 +7,7 @@ from django.conf import settings
 from django.shortcuts import render
 
 FASTAPI_ANALYZE_URL = "http://localhost:8000/pushup/analyze"
+FASTAPI_CLEAN_JERK_URL = "http://localhost:8000/weightlifting/clean-jerk/analyze"
 
 
 def home(request):
@@ -20,6 +21,8 @@ def exercises(request):
 def pushup(request):
     return render(request, "frontend/pushup.html")
 
+def clean_and_jerk(request):
+    return render(request, "frontend/clean_and_jerk.html")
 
 @csrf_exempt
 def upload_video_ajax(request):
@@ -77,3 +80,54 @@ def upload_video_ajax(request):
             {"ok": False, "error": str(e)},
             status=500
         )
+@csrf_exempt
+def upload_cleanjerk_ajax(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+
+    video = request.FILES.get("video-blob") or request.FILES.get("video")
+
+    if not video:
+        return JsonResponse({"ok": False, "error": "No video received"}, status=400)
+
+    try:
+        response = requests.post(
+            FASTAPI_CLEAN_JERK_URL,
+            files={"video": (video.name, video.read(), video.content_type)},
+            timeout=300
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+        processed_path = result.get("processed_video_path")
+
+        if not processed_path:
+            return JsonResponse(
+                {"ok": False, "error": "FastAPI did not return output path"},
+                status=500
+            )
+
+        processed_path = os.path.normpath(processed_path)
+
+        if not os.path.exists(processed_path):
+            return JsonResponse(
+                {"ok": False, "error": f"Video not found: {processed_path}"},
+                status=500
+            )
+
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+
+        filename = os.path.basename(processed_path)
+        dest_path = os.path.join(settings.MEDIA_ROOT, filename)
+
+        shutil.copy(processed_path, dest_path)
+
+        return JsonResponse({
+            "ok": True,
+            "processed_video_url": settings.MEDIA_URL + filename,
+            "result": result
+        })
+
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)

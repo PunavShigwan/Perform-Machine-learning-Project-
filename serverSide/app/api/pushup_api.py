@@ -21,8 +21,11 @@ router = APIRouter(tags=["Pushup"])
 
 # Directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# BASE_DIR → serverSide/
+
 INPUT_DIR = os.path.join(BASE_DIR, "app", "uploads", "input")
 OUTPUT_DIR = os.path.join(BASE_DIR, "app", "uploads", "output")
+
 
 os.makedirs(INPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -30,6 +33,9 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 print("📁 INPUT_DIR:", INPUT_DIR)
 print("📁 OUTPUT_DIR:", OUTPUT_DIR)
 
+# =====================================================
+# API
+# =====================================================
 @router.post("/analyze", response_model=PushupAnalysisResponse)
 async def analyze_pushup(video: UploadFile = File(...)):
     try:
@@ -43,25 +49,41 @@ async def analyze_pushup(video: UploadFile = File(...)):
         processed_name = f"processed_{safe_name}"
         output_path = os.path.join(OUTPUT_DIR, processed_name)
 
+        # Save input
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(video.file, buffer)
 
         print("🎥 Video saved to:", input_path)
 
+        # ===============================
+        # ANALYSIS (YOUR REAL ML PIPELINE)
+        # ===============================
         result = analyze_pushup_video(input_path, output_path)
 
+        # ===============================
+        # 🔥 ATTACH PUBLIC VIDEO URL
+        # ===============================
         processed_url = f"http://localhost:8000/local-videos/{processed_name}"
         result["processed_video_url"] = processed_url
 
+        # ===============================
+        # 🔥 PRINT RESPONSE TO TERMINAL
+        # ===============================
         print("\n📤 API RESPONSE (DICT):")
         pprint(result)
 
-        json.dumps(result)  # validate JSON
+        try:
+            json.dumps(result)
+            print("✅ Response is valid JSON")
+        except Exception as json_err:
+            print("❌ JSON SERIALIZATION ERROR:", json_err)
 
         print("================ PUSHUP ANALYSIS END ================\n")
+
         return result
 
     except Exception as e:
         print("\n🔥 PUSHUP API ERROR")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
