@@ -5,11 +5,37 @@ import joblib
 import os
 
 # ================================
-# LOAD MODEL
+# LOAD MODEL (FIXED)
 # ================================
-BASE_DIR = os.path.dirname(__file__)
-MODEL_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\models\best_model.pkl"
-LABEL_MAP_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\models\label_map.pkl"
+
+BASE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../../../")
+)
+
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "ML_Model",
+    "clean_and_jerk_model",
+    "models",
+    "best_model.pkl"
+)
+
+LABEL_MAP_PATH = os.path.join(
+    BASE_DIR,
+    "ML_Model",
+    "clean_and_jerk_model",
+    "models",
+    "label_map.pkl"
+)
+
+print("MODEL PATH:", MODEL_PATH)
+print("MODEL EXISTS:", os.path.exists(MODEL_PATH))
+
+print("LABEL PATH:", LABEL_MAP_PATH)
+print("LABEL EXISTS:", os.path.exists(LABEL_MAP_PATH))
+
+model = joblib.load(MODEL_PATH)
+LABEL_MAP = joblib.load(LABEL_MAP_PATH)
 
 model = joblib.load(MODEL_PATH)
 LABEL_MAP = joblib.load(LABEL_MAP_PATH)
@@ -63,7 +89,7 @@ def analyze_clean_jerk_video(input_path: str, output_path: str):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"avc1")
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     pose = mp_pose.Pose(
@@ -145,5 +171,5 @@ def analyze_clean_jerk_video(input_path: str, output_path: str):
         "bad_frames": bad_frames,
         "form_accuracy_percent": form_accuracy,
         "phase_distribution": phase_counter,
-        "processed_video_path": output_path
+        "processed_video_path": os.path.abspath(output_path)   # ✅ FIX
     }
