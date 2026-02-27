@@ -1,26 +1,37 @@
+# Large Datasets & Video Files
 pushup_dataset/
 pushup_frames/
 dataset_video/
 frames/
-dataset_video
-frames
-data/clean_jerk/sample_videos/input.mp4
-data/clean_jerk/frames_30fps/
-data
-frames_30fps
+data/
+frames_30fps/
 frames_30fps_front/
 cj_sorted_output/
 uploads/
-logs/
 temp_videos/
+*.mp4
+*.avi
+*.mov
+*.mpeg4
+*.m4v
+*.webm
+*.mkv
 
 # Virtual Environments
 venv/
 venv1/
+venv2/
+venv3/
 perform_env_312/
 .venv/
 ENV/
 env/
+Lib/
+Include/
+Scripts/
+bin/
+pyvenv.cfg
+share/
 
 # Python
 __pycache__/
@@ -29,14 +40,52 @@ __pycache__/
 *.egg-info/
 .installed.cfg
 *.egg
+*.egg/
 *.sqlite3
 db.sqlite3
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+# ML Models & Large Files
+*.h5
+*.pkl
+*.pth
+*.pt
+*.onnx
+*.pb
+*.joblib
+*.model
+*.weights
+saved_models/
+checkpoints/
+*.npy
+*.npz
+
+# Logs & Caches
+logs/
+*.log
+.pytest_cache/
+.mypy_cache/
 
 # IDE
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
 
 # OS
-.DS_Store
 Thumbs.db
+*.tmp
+*.bak
