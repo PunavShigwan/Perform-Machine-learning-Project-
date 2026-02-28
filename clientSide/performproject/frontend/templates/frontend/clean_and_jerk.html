@@ -47,42 +47,26 @@
       </div>
 <div id="result-panel" class="card hidden" style="margin-top:16px">
 
-  <h4>Per Rep Analysis</h4>
-  <table id="rep-table" border="1" width="100%">
-    <thead>
-      <tr>
-        <th>Rep</th>
-        <th>Form %</th>
-        <th>Rating</th>
-        <th>Time (s)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-  
-
-  <p>🏋️ Total Pushups: <strong id="pushup-count">–</strong></p>
-  <p>📈 Predicted Max: <strong id="estimated-range">–</strong></p>
-  <p>🔥 Fatigue: <strong id="fatigue"></strong> 
+  <p>🏋️ Total Frames: <strong id="pushup-count">–</strong></p>
+  <p>📈 Form Accuracy: <strong id="estimated-range">–</strong></p>
+  <p>🔥 Bad Frames: <strong id="fatigue"></strong>
      (<span id="fatigue-level"></span>)</p>
 
-  <h4>Per Rep Analysis</h4>
+  <h4>Phase Analysis</h4>
   <table id="rep-table" border="1" width="100%">
     <thead>
       <tr>
-        <th>Rep</th>
+        <th>Phase</th>
         <th>Form %</th>
-        <th>Rating</th>
-        <th>Time (s)</th>
+        <th>Status</th>
+        <th>Duration (s)</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 </div>
 
-</div>
+
 
       <!-- hidden file input -->
       <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
@@ -100,7 +84,7 @@
       <div class="camera-wrap">
         <video id="camera-stream" autoplay muted playsinline></video>
       </div>
-      <div class="camera-hint">Your camera stream will appear here. Allow camera access when prompted.</div>
+      <!-- <div class="camera-hint">Your camera stream will appear here. Allow camera access when prompted.</div> -->
     </div>
   </div>
 </div>
@@ -215,7 +199,7 @@ if (data.processed_video_url) {
   uploadedVideo.src = data.processed_video_url;
   uploadedVideo.controls = true;
   uploadedVideo.muted = false;
-  uploadedVideo.loop = false;
+  uploadedVideo.loop = true;
 
   uploadedVideo.load();
   uploadedVideo.play().catch(err => {
@@ -230,17 +214,20 @@ if (data.processed_video_url) {
 const tbody = document.querySelector("#rep-table tbody");
 tbody.innerHTML = "";
 
-const phases = r.phase_distribution || {};
+const phases = r.stage_summary || {};
 
-Object.keys(phases).forEach(phase => {
+console.log("Stage summary:", phases);  // 👈 ADD THIS LINE
 
+Object.keys(phases).forEach(stage => {
+
+  const stageData = phases[stage];
   const row = document.createElement("tr");
 
   row.innerHTML = `
-    <td>${phase}</td>
-    <td>${phases[phase]}</td>
-    <td>-</td>
-    <td>-</td>
+    <td>${stageData.label}</td>
+    <td>${stageData.phase_form_percent ?? "-"}</td>
+    <td>${stageData.detected ? "Detected" : "Not Detected"}</td>
+    <td>${stageData.duration_seconds ?? 0}</td>
   `;
 
   tbody.appendChild(row);

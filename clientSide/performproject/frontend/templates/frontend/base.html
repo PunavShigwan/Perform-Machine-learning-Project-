@@ -3,23 +3,36 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% block title %}PerForm{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}PERFORM AI{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
 </head>
+
 <body>
-  <header>
-    <div class="header-inner">
-      <h1>PerForm : A ML Based Exercise Assistant</h1>
+
+  <!-- Modern Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <a href="{% url 'frontend:home' %}">PERFORM AI</a>
+      </div>
+
+      <nav class="nav-links">
+        <a href="{% url 'frontend:home' %}">Home</a>
+        <a href="{% url 'frontend:exercises' %}">Exercises</a>
+        <a href="{% url 'frontend:pushup' %}">Push-up</a>
+        <a href="{% url 'frontend:clean_and_jerk' %}">Clean & Jerk</a>
+      </nav>
     </div>
   </header>
 
-  <main>
+  <main class="main-container">
     {% block content %}{% endblock %}
   </main>
 
-  <footer>
-    <p>&copy; PerForm : A ML Based Exercise Assistant</p>
+  <footer class="footer">
+    <p>Powered by AI Motion Intelligence</p>
+    <p>© {% now "Y" %} PERFORM AI</p>
   </footer>
 
   {% block scripts %}{% endblock %}
