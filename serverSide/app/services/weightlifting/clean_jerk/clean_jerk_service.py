@@ -750,7 +750,7 @@ def analyze_clean_jerk_video(input_path: str, output_path: str) -> Dict[str, Any
     try:
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         out = cv2.VideoWriter(
-            output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height)
+            output_path, cv2.VideoWriter_fourcc(*"avc1"), fps, (width, height)
         )
         if not out.isOpened():
             raise RuntimeError(f"VideoWriter failed: {output_path}")
@@ -1042,7 +1042,7 @@ def analyze_clean_jerk_video(input_path: str, output_path: str) -> Dict[str, Any
                 "fastest_phase":               sorted_ph[0],
                 "slowest_phase":               sorted_ph[-1],
             },
-            "processed_video_path": output_path,
+            "processed_video_path": os.path.abspath(output_path),
         }
     except Exception as e:
         return _make_error("Step 8 – Response dict", e)
