@@ -1,20 +1,44 @@
 {% extends 'frontend/base.html' %}
 
-{% block title %}Exercises{% endblock %}
+{% block title %}PERFORM AI — Choose Training{% endblock %}
 
 {% block content %}
-<div class="page-wrap">
-  <div class="card">
-    <h2 style="margin-bottom:12px">Choose an Exercise</h2>
 
-    <div class="ex-list">
-<a href="{% url 'frontend:pushup' %}" class="exercise-btn">Pushup</a>
-<a href="{% url 'frontend:clean_and_jerk' %}" class="exercise-btn">Clean and Jerk</a>
-      <!-- inert buttons for now -->
-      <button class="exercise-btn inert" title="Coming soon">Squats</button>
+<section class="exercise-section">
+
+  <div class="exercise-header">
+    <h1>Choose Your Training Mode</h1>
+    <p>Select an exercise and let AI analyze your movement in real time.</p>
+  </div>
+
+  <div class="exercise-grid">
+
+    <!-- Push-up -->
+    <a href="{% url 'frontend:pushup' %}" class="exercise-card">
+      <div class="exercise-icon">💪</div>
+      <h2>Push-up Trainer</h2>
+      <p>Live rep counting • fatigue detection • depth analysis</p>
+      <span class="exercise-badge active">Available</span>
+    </a>
+
+    <!-- Clean & Jerk -->
+    <a href="{% url 'frontend:clean_and_jerk' %}" class="exercise-card">
+      <div class="exercise-icon">🏋️</div>
+      <h2>Clean & Jerk</h2>
+      <p>Phase breakdown • explosive power scoring • form accuracy</p>
+      <span class="exercise-badge active">Available</span>
+    </a>
+
+    <!-- Squats (Disabled) -->
+    <div class="exercise-card disabled">
+      <div class="exercise-icon">🦵</div>
+      <h2>Squats</h2>
+      <p>Depth tracking • knee alignment • stability metrics</p>
+      <span class="exercise-badge coming">Coming Soon</span>
     </div>
 
-    <p class="muted" style="margin-top:14px">Pushup opens the interactive upload / camera trainer. Squat will be added soon.</p>
   </div>
-</div>
+
+</section>
+
 {% endblock %}
