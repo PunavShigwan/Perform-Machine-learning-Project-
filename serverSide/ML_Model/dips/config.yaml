@@ -1,0 +1,141 @@
+project: dip_form_analyzer
+
+# ══════════════════════════════════════════════════
+# DATA
+# ══════════════════════════════════════════════════
+data:
+  raw_dir: "C:/Users/punav shigwan/OneDrive/Desktop/all_exersice/tricep dips"
+  processed_dir: data/processed
+
+# ══════════════════════════════════════════════════
+# CLASSES
+# ══════════════════════════════════════════════════
+classes:
+  - correct
+  - elbow_flare
+  - shallow_depth
+  - forward_lean
+
+num_classes: 4
+
+# ══════════════════════════════════════════════════
+# KEYPOINT EXTRACTION
+# ══════════════════════════════════════════════════
+preprocessing:
+  max_frames: 30
+  keypoint_dim: 99          # 33 landmarks × 3 (x, y, z)
+  # frame_height / frame_width are no longer needed (ML uses keypoints only)
+
+# ══════════════════════════════════════════════════
+# NORMALIZATION & DIMENSIONALITY REDUCTION
+# Applied in this order: StandardScaler → MinMaxScaler → PCA (optional)
+# ══════════════════════════════════════════════════
+preprocessing_steps:
+  use_standard_scaler: true   # zero-mean, unit-variance  (always recommended)
+  use_minmax: true            # rescale to [0, 1] after StandardScaler
+  pca_components: null        # set to e.g. 200 to enable PCA; null = disabled
+  #   Tip: enable PCA if feature_dim > 500 and you want faster training.
+  #   A value of 150–200 typically retains >95% variance.
+
+# ══════════════════════════════════════════════════
+# TRAIN / VAL / TEST SPLIT
+# ══════════════════════════════════════════════════
+training:
+  val_split: 0.15
+  test_split: 0.15
+  # epochs / batch_size / learning_rate removed — not used by ML models
+  checkpoint_dir: outputs/checkpoints   # .pkl files saved here
+  results_dir: outputs/results          # confusion matrices, CSVs
+  log_dir: outputs/logs                 # per-model CV logs
+
+# ══════════════════════════════════════════════════
+# FORM SCORING THRESHOLDS
+# ══════════════════════════════════════════════════
+thresholds:
+  elbow_flare_angle: 45     # shoulder angle (deg) — above = flare detected  → -25 pts
+  min_depth_angle: 90       # min elbow angle at bottom — above = too shallow → -25 pts
+  torso_lean_angle: 20      # forward torso lean (deg) — above = excessive    → -20 pts
+  # L/R asymmetry threshold is hardcoded at 15° in pipeline.py              → -15 pts
+
+# ══════════════════════════════════════════════════
+# ML MODEL HYPERPARAMETERS
+# Edit these to tune individual classifiers without touching Python code.
+# ══════════════════════════════════════════════════
+ml_models:
+
+  random_forest:
+    n_estimators: 300
+    max_depth: null           # null = grow until pure leaves
+    min_samples_split: 2
+    min_samples_leaf: 1
+    max_features: sqrt        # sqrt | log2 | float (fraction)
+
+  gradient_boosting:
+    n_estimators: 200
+    learning_rate: 0.05
+    max_depth: 4
+    subsample: 0.8
+    min_samples_split: 4
+
+  xgboost:                    # skipped automatically if xgboost not installed
+    n_estimators: 300
+    learning_rate: 0.05
+    max_depth: 5
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1            # L1 regularisation
+    reg_lambda: 1.0           # L2 regularisation
+
+  lightgbm:                   # skipped automatically if lightgbm not installed
+    n_estimators: 300
+    learning_rate: 0.05
+    num_leaves: 63
+    max_depth: -1             # -1 = no limit
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1
+    reg_lambda: 1.0
+
+  catboost:                   # skipped automatically if catboost not installed
+    iterations: 300
+    learning_rate: 0.05
+    depth: 6
+    l2_leaf_reg: 3
+
+  extra_trees:
+    n_estimators: 300
+    max_depth: null
+    min_samples_split: 2
+
+  adaboost:
+    n_estimators: 200
+    learning_rate: 0.5
+    base_max_depth: 3         # max_depth of the base DecisionTree
+
+  svm:
+    C: 10.0                   # regularisation — lower = more regularised
+    kernel: rbf               # rbf | poly | linear
+    gamma: scale              # scale | auto | float
+
+  knn:
+    n_neighbors: 7
+    weights: distance         # distance | uniform
+    metric: euclidean         # euclidean | manhattan | minkowski
+
+  logistic_regression:
+    C: 1.0                    # inverse regularisation strength
+    max_iter: 1000
+
+  decision_tree:
+    max_depth: 12
+    min_samples_split: 4
+    min_samples_leaf: 2
+
+  bagging:
+    n_estimators: 100
+    base_max_depth: 8         # max_depth of each base DecisionTree
+    max_samples: 0.8          # fraction of samples per base estimator
+    max_features: 0.8         # fraction of features per base estimator
+
+  # voting_ensemble and stacking_ensemble use the sub-model configs above —
+  # no separate hyperparameters needed here.

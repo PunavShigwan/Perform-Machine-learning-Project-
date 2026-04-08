@@ -1,0 +1,14 @@
+model,accuracy,f1_macro
+gradient_boosting,0.75,0.7083
+bagging,0.75,0.734
+stacking_ensemble,0.75,0.7083
+ensemble,0.75,0.7083
+random_forest,0.6667,0.5985
+catboost,0.6667,0.5985
+adaboost,0.6667,0.5673
+decision_tree,0.6667,0.7095
+logistic_regression,0.5833,0.5595
+voting_ensemble,0.5833,0.4818
+extra_trees,0.4167,0.3364
+svm,0.25,0.2679
+knn,0.25,0.1
