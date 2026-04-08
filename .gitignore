@@ -4,6 +4,7 @@ pushup_frames/
 dataset_video/
 frames/
 data/
+frames.zip
 frames_30fps/
 frames_30fps_front/
 cj_sorted_output/
