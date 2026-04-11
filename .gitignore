@@ -4,6 +4,11 @@ pushup_frames/
 dataset_video/
 frames/
 data/
+<<<<<<< HEAD
+=======
+frames.zip
+
+>>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 frames_30fps/
 frames_30fps_front/
 cj_sorted_output/

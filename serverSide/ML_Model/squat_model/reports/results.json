@@ -1,0 +1,198 @@
+{
+  "RandomForest": {
+    "accuracy": 0.9982,
+    "f1": 0.9982,
+    "precision": 0.9983,
+    "recall": 0.9982,
+    "roc_auc": 1.0,
+    "cv_mean": 0.9996,
+    "cv_std": 0.0007,
+    "cv_folds": [
+      1.0,
+      0.9982,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "train_time_sec": 0.576,
+    "confusion_matrix": [
+      [
+        341,
+        1
+      ],
+      [
+        0,
+        228
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\RandomForest.pkl"
+  },
+  "GradientBoosting": {
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "roc_auc": 1.0,
+    "cv_mean": 1.0,
+    "cv_std": 0.0,
+    "cv_folds": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "train_time_sec": 2.65,
+    "confusion_matrix": [
+      [
+        342,
+        0
+      ],
+      [
+        0,
+        228
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\GradientBoosting.pkl"
+  },
+  "ExtraTrees": {
+    "accuracy": 0.9719,
+    "f1": 0.9719,
+    "precision": 0.9719,
+    "recall": 0.9719,
+    "roc_auc": 0.9976,
+    "cv_mean": 0.9726,
+    "cv_std": 0.0045,
+    "cv_folds": [
+      0.9719,
+      0.9649,
+      0.9737,
+      0.9737,
+      0.9789
+    ],
+    "train_time_sec": 0.42,
+    "confusion_matrix": [
+      [
+        336,
+        6
+      ],
+      [
+        10,
+        218
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\ExtraTrees.pkl"
+  },
+  "AdaBoost": {
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "roc_auc": 1.0,
+    "cv_mean": 1.0,
+    "cv_std": 0.0,
+    "cv_folds": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "train_time_sec": 0.021,
+    "confusion_matrix": [
+      [
+        342,
+        0
+      ],
+      [
+        0,
+        228
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\AdaBoost.pkl"
+  },
+  "LogisticRegression": {
+    "accuracy": 0.9877,
+    "f1": 0.9877,
+    "precision": 0.9877,
+    "recall": 0.9877,
+    "roc_auc": 0.9995,
+    "cv_mean": 0.9804,
+    "cv_std": 0.003,
+    "cv_folds": [
+      0.9789,
+      0.9772,
+      0.986,
+      0.9789,
+      0.9807
+    ],
+    "train_time_sec": 0.068,
+    "confusion_matrix": [
+      [
+        340,
+        2
+      ],
+      [
+        5,
+        223
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\LogisticRegression.pkl"
+  },
+  "SVM": {
+    "accuracy": 0.9596,
+    "f1": 0.9598,
+    "precision": 0.9604,
+    "recall": 0.9596,
+    "roc_auc": 0.9954,
+    "cv_mean": 0.9589,
+    "cv_std": 0.0049,
+    "cv_folds": [
+      0.9649,
+      0.9579,
+      0.9579,
+      0.9509,
+      0.9632
+    ],
+    "train_time_sec": 0.411,
+    "confusion_matrix": [
+      [
+        326,
+        16
+      ],
+      [
+        7,
+        221
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\SVM.pkl"
+  },
+  "KNN": {
+    "accuracy": 0.9737,
+    "f1": 0.9737,
+    "precision": 0.9737,
+    "recall": 0.9737,
+    "roc_auc": 0.9889,
+    "cv_mean": 0.9561,
+    "cv_std": 0.005,
+    "cv_folds": [
+      0.9544,
+      0.9526,
+      0.9579,
+      0.9509,
+      0.9649
+    ],
+    "train_time_sec": 0.008,
+    "confusion_matrix": [
+      [
+        335,
+        7
+      ],
+      [
+        8,
+        220
+      ]
+    ],
+    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models\\KNN.pkl"
+  }
+}
