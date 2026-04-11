@@ -465,3 +465,39 @@ body {
 .rep-card.bad { border: 1px solid #ef4444; }
 
 
+.live-alert {
+  position: fixed;
+  right: 24px;
+  top: 100px;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  min-width: 220px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  pointer-events: none;
+}
+
+.live-alert.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Good form - green */
+.live-alert.live-alert--good {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(21, 128, 61, 0.95));
+  border: 1px solid rgba(74, 222, 128, 0.5);
+}
+
+/* Bad form - red/orange */
+.live-alert.live-alert--bad {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+  border: 1px solid rgba(252, 165, 165, 0.5);
+}
