@@ -4,11 +4,7 @@ import numpy as np
 import pickle
 import os
 import time
-<<<<<<< HEAD
 from collections import deque
-=======
-from collections import deque, Counter
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 
 print("📦 Loading pushup_service...")
 
