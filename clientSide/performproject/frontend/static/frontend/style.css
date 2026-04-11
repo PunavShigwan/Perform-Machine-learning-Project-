@@ -465,7 +465,6 @@ body {
 .rep-card.bad { border: 1px solid #ef4444; }
 
 
-<<<<<<< HEAD
 .live-alert {
   position: fixed;
   right: 24px;
@@ -502,5 +501,3 @@ body {
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
   border: 1px solid rgba(252, 165, 165, 0.5);
 }
-=======
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69

@@ -68,21 +68,6 @@
   <p>🔥 Fatigue: <strong id="fatigue"></strong> 
      (<span id="fatigue-level"></span>)</p>
 
-<<<<<<< HEAD
-=======
-  <h4>Per Rep Analysis</h4>
-  <table id="rep-table" border="1" width="100%">
-    <thead>
-      <tr>
-        <th>Rep</th>
-        <th>Form %</th>
-        <th>Rating</th>
-        <th>Time (s)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 </div>
 
 </div>
@@ -93,11 +78,7 @@
 <h3>Pushup Analysis</h3>
       <!-- video preview plays immediately and loops -->
       <div id="preview-wrap" class="preview-wrap hidden">
-<<<<<<< HEAD
         <video id="uploaded-video" autoplay muted playsinline></video>
-=======
-        <video id="uploaded-video" autoplay loop muted playsinline></video>
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
         <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
       </div>
     </div>
@@ -110,15 +91,11 @@
       <!-- <div class="camera-hint">Your camera stream will appear here. Allow camera access when prompted.</div> -->
     </div>
   </div>
-<<<<<<< HEAD
   <div id="live-alert" class="live-alert"></div>
-=======
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 </div>
 {% endblock %}
 
 {% block scripts %}
-<<<<<<< HEAD
 {% load static %}
 <script>
 console.log("🔥 pushup.js loaded");
@@ -186,27 +163,6 @@ function showFormAlert(type, repNum) {
 }
 
 /* ── Mode toggle ─────────────────────────────────────────────── */
-=======
-<script>
-console.log("🔥 pushup.js loaded");
-
-/* DOM refs */
-const fileInput = document.getElementById('file-input');
-const dropzone = document.getElementById('dropzone');
-const browseBtn = document.getElementById('browse-btn');
-const uploadFeedback = document.getElementById('upload-feedback');
-const previewWrap = document.getElementById('preview-wrap');
-const uploadedVideo = document.getElementById('uploaded-video');
-const cameraSection = document.getElementById('camera-section');
-const uploadSection = document.getElementById('upload-section');
-const cameraStream = document.getElementById('camera-stream');
-const closeVideoBtn = document.getElementById('close-video-btn');
-
-const MAX_BYTES = 200 * 1024 * 1024; // 200MB
-const ACCEPTED_EXT = ['mp4','avi','mov','mpeg4','m4v','webm'];
-
-/* Mode toggle */
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 document.querySelectorAll('input[name="input-mode"]').forEach(r => {
   r.addEventListener('change', e => {
     if (e.target.value === 'upload') {
@@ -221,14 +177,9 @@ document.querySelectorAll('input[name="input-mode"]').forEach(r => {
   });
 });
 
-<<<<<<< HEAD
 /* ── Dropzone ────────────────────────────────────────────────── */
 dropzone.addEventListener('dragover', e => e.preventDefault());
 dropzone.addEventListener('drop', e => {
-=======
-/* Dropzone */
-dropzone.addEventListener('drop', (e) => {
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
   e.preventDefault();
   const file = e.dataTransfer.files[0];
   if (file) handleFile(file);
@@ -239,7 +190,6 @@ fileInput.addEventListener('change', () => {
   if (file) handleFile(file);
 });
 
-<<<<<<< HEAD
 /* Track the single timeupdate listener so we can replace it on re-upload */
 let timeupdateHandler = null;
 
@@ -257,35 +207,10 @@ function handleFile(file) {
   uploadedVideo.pause();
   uploadedVideo.removeAttribute("src");
   uploadedVideo.load();
-=======
-/* MAIN HANDLER */
-function handleFile(file) {
-  console.log("📤 handleFile called:", file);
-
-  uploadFeedback.textContent = "Uploading & analyzing… ⏳";
-
-  if (file.size > MAX_BYTES) {
-    alert('File too large — max 200MB.');
-    return;
-  }
-
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (!ACCEPTED_EXT.includes(ext)) {
-    alert('Invalid file type.');
-    return;
-  }
-
-previewWrap.classList.remove('hidden');
-uploadedVideo.pause();
-uploadedVideo.removeAttribute("src");
-uploadedVideo.load();
-
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 
   const fd = new FormData();
   fd.append('video-blob', file, file.name);
 
-<<<<<<< HEAD
   fetch("{% url 'frontend:upload_video_ajax' %}", { method: "POST", body: fd })
     .then(res => { console.log("📡 status:", res.status); return res.json(); })
     .then(data => {
@@ -386,107 +311,13 @@ uploadedVideo.load();
 }
 
 /* ── Camera ──────────────────────────────────────────────────── */
-=======
-  fetch("{% url 'frontend:upload_video_ajax' %}", {
-    method: "POST",
-    body: fd
-  })
-  .then(res => {
-    console.log("📡 response status:", res.status);
-    return res.json();
-  })
-  .then(data => {
-    console.log("✅ server data:", data);
-
-    if (!data.ok) {
-      uploadFeedback.textContent = "❌ Error: " + (data.error || "Unknown");
-      alert("Error from server:\n" + (data.error || "Unknown"));
-      return;
-    }
-
-    const r = data.result;
-    uploadFeedback.textContent = "✅ Analysis complete";
-
-// 🧠 new ML results
-
-
-// Main metrics
-document.getElementById("pushup-count").textContent = r.pushup_count;
-document.getElementById("estimated-range").textContent = r.estimated_range;
-document.getElementById("fatigue").textContent = r.fatigue;
-document.getElementById("fatigue-level").textContent = r.fatigue_level;
-
-// 🎥 PLAY PROCESSED VIDEO (FROM DJANGO MEDIA)
-if (data.processed_video_url) {
-  console.log("🎬 Playing processed video:", data.processed_video_url);
-
-  uploadedVideo.src = data.processed_video_url;
-  uploadedVideo.controls = true;
-  uploadedVideo.muted = false;
-  uploadedVideo.loop = true;
-
-  uploadedVideo.load();
-  uploadedVideo.play().catch(err => {
-    console.error("❌ Video play failed:", err);
-  });
-} else {
-  console.warn("⚠️ No processed_video_url returned from Django");
-}
-
-
-// Rep-wise table
-const tbody = document.querySelector("#rep-table tbody");
-tbody.innerHTML = "";
-
-(r.reps || []).forEach(rep => {
-
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${rep.rep}</td>
-    <td>${rep.form}%</td>
-    <td>${rep.rating}</td>
-    <td>${rep.time}</td>
-  `;
-  tbody.appendChild(row);
-});
-
-// Show result panel
-document.getElementById("result-panel").classList.remove("hidden");
-
-uploadFeedback.textContent = "✅ Analysis complete";
-
-
-
-// 🧪 rep-wise data (check console for now)
-console.table(r.reps);
-
-// show panel
-document.getElementById("result-panel").classList.remove("hidden");
-
-document.getElementById("result-panel").classList.remove("hidden");
-
-  })
-  .catch(err => {
-    console.error("❌ fetch error:", err);
-    uploadFeedback.textContent = "❌ Upload failed (see console)";
-  });
-}
-
-/* Camera */
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 let cameraStreamTrack = null;
 async function startCamera() {
   try {
     const s = await navigator.mediaDevices.getUserMedia({ video: true });
     cameraStream.srcObject = s;
     cameraStreamTrack = s;
-<<<<<<< HEAD
   } catch { alert("Camera access failed"); }
-=======
-  } catch {
-    alert("Camera access failed");
-  }
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 }
 function stopCamera() {
   if (cameraStreamTrack) {
@@ -495,20 +326,13 @@ function stopCamera() {
   }
 }
 
-<<<<<<< HEAD
 /* ── Close preview ───────────────────────────────────────────── */
-=======
-/* Close preview */
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 closeVideoBtn.addEventListener('click', () => {
   uploadedVideo.pause();
   uploadedVideo.src = '';
   previewWrap.classList.add('hidden');
   uploadFeedback.textContent = 'No file selected';
-<<<<<<< HEAD
   alertBox.classList.remove("show");
-=======
->>>>>>> ab5955a2fa4f135a5a143c0b766fb9db6514fa69
 });
 
 </script>
