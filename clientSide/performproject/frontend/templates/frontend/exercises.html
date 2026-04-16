@@ -6,7 +6,7 @@
 
 <section class="exercise-section">
 
-  <div class="exercise-header">
+  <div class="exercise-header stagger-1">
     <h1>Choose Your Training Mode</h1>
     <p>Select an exercise and let AI analyze your movement in real time.</p>
   </div>
@@ -14,7 +14,7 @@
   <div class="exercise-grid">
 
     <!-- Push-up -->
-    <a href="{% url 'frontend:pushup' %}" class="exercise-card">
+    <a href="{% url 'frontend:pushup' %}" class="exercise-card stagger-2">
       <div class="exercise-icon">💪</div>
       <h2>Push-up Trainer</h2>
       <p>Live rep counting • fatigue detection • depth analysis</p>
@@ -22,10 +22,18 @@
     </a>
 
     <!-- Clean & Jerk -->
-    <a href="{% url 'frontend:clean_and_jerk' %}" class="exercise-card">
+    <a href="{% url 'frontend:clean_and_jerk' %}" class="exercise-card stagger-3">
       <div class="exercise-icon">🏋️</div>
       <h2>Clean & Jerk</h2>
       <p>Phase breakdown • explosive power scoring • form accuracy</p>
+      <span class="exercise-badge active">Available</span>
+    </a>
+
+    <!-- Dips -->
+    <a href="{% url 'frontend:dips' %}" class="exercise-card stagger-4">
+      <div class="exercise-icon">💪</div>
+      <h2>Tricep Dips</h2>
+      <p>Depth tracking • symmetry check • fatigue detection</p>
       <span class="exercise-badge active">Available</span>
     </a>
 

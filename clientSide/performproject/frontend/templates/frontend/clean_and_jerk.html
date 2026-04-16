@@ -6,9 +6,9 @@
 
 {% block content %}
 
-<h1 class="pushup-header">Clean and Jerk Training</h1>
-<div class="page-wrap">
-  <div class="card">
+<h1 class="pushup-header stagger-1">Clean and Jerk Training</h1>
+<div class="page-wrap stagger-2">
+  <div class="card glass-card">
     <label class="mode-label">Choose input mode:</label>
 
     <div class="mode-row" role="tablist" aria-label="Choose input mode">
@@ -27,54 +27,68 @@
 
     <!-- UPLOAD SECTION -->
     <div id="upload-section" class="upload-section">
-      <div id="dropzone" class="dropzone">
+      <div id="dropzone" class="dropzone glass-card stagger-3">
         <div class="drop-left">
           <!-- cloud SVG -->
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="#cfd6dc"/>
-            <path d="M9 13v3l2-2 2 2v-3" stroke="#1f2937" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg style="filter: drop-shadow(0 0 8px var(--accent-glow));" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="var(--accent)"/>
+            <path d="M9 13v3l2-2 2 2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
 
           <div class="drop-text">
-            <div class="drop-title">Drag and drop file here</div>
+            <div class="drop-title" style="font-family: var(--font-head); font-weight: 700;">Drag and drop file here</div>
             <div class="drop-sub">Limit 200MB per file • MP4, AVI, MOV, MPEG4</div>
           </div>
         </div>
 
         <div class="drop-right">
-          <button id="browse-btn" class="browse-btn" type="button">Browse files</button>
+          <button id="browse-btn" class="btn-primary" type="button">Browse files</button>
         </div>
       </div>
-<div id="result-panel" class="card hidden" style="margin-top:16px">
 
-  <p>🏋️ Total Frames: <strong id="pushup-count">–</strong></p>
-  <p>📈 Form Accuracy: <strong id="estimated-range">–</strong></p>
-  <p>🔥 Bad Frames: <strong id="fatigue"></strong>
-     (<span id="fatigue-level"></span>)</p>
+<div id="result-panel" class="card glass-card hidden stagger-4" style="margin-top:24px">
 
-  <h4>Phase Analysis</h4>
-  <table id="rep-table" border="1" width="100%">
-    <thead>
-      <tr>
-        <th>Phase</th>
-        <th>Form %</th>
-        <th>Status</th>
-        <th>Duration (s)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card glass-card stagger-1" style="padding: 20px;">
+      <div class="stat-label">Total Frames</div>
+      <div id="pushup-count" class="stat-value" style="font-size: 2rem;">–</div>
+    </div>
+    <div class="stat-card glass-card stagger-2" style="padding: 20px;">
+      <div class="stat-label">Form Accuracy</div>
+      <div id="estimated-range" class="stat-value" style="font-size: 2rem; color: var(--accent);">–</div>
+    </div>
+    <div class="stat-card glass-card stagger-3" style="padding: 20px;">
+      <div class="stat-label">Bad Frames</div>
+      <div id="fatigue" class="stat-value" style="font-size: 2rem; color: #ef4444;"></div>
+      <div id="fatigue-level" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;"></div>
+    </div>
+  </div>
+
+  <h4 style="font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px;">Phase Analysis</h4>
+  <div style="overflow-x: auto;">
+    <table id="rep-table" class="live-rep-table" width="100%">
+      <thead>
+        <tr>
+          <th>Phase</th>
+          <th>Form %</th>
+          <th>Status</th>
+          <th>Duration (s)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 
 
 
       <!-- hidden file input -->
       <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
-      <div id="upload-feedback" class="upload-feedback">No file selected</div>
-<h3>Clean & Jerk Analysis</h3>
+      <div id="upload-feedback" class="upload-feedback stagger-5">No file selected</div>
+      <h3 style="font-family: var(--font-head); margin-top: 24px;">Clean & Jerk Analysis</h3>
       <!-- video preview plays immediately and loops -->
-      <div id="preview-wrap" class="preview-wrap hidden">
-        <video id="uploaded-video" autoplay loop muted playsinline></video>
+      <div id="preview-wrap" class="preview-wrap hidden glass-card stagger-5">
+        <video id="uploaded-video" autoplay loop muted playsinline style="border-radius: 12px;"></video>
         <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
       </div>
     </div>
