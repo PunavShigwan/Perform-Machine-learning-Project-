@@ -1,0 +1,351 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Tricep Dips Training{% endblock %}
+
+{% block content %}
+
+<h1 class="pushup-header stagger-1">Tricep Dips Training</h1>
+<div class="page-wrap stagger-2">
+  <div class="card glass-card">
+    <label class="mode-label">Choose input mode:</label>
+
+    <div class="mode-row" role="tablist" aria-label="Choose input mode">
+      <label class="mode-option">
+        <input type="radio" name="input-mode" value="upload" checked>
+        <span class="fake-radio"></span>
+        <span class="mode-text">Upload Video</span>
+      </label>
+
+      <label class="mode-option">
+        <input type="radio" name="input-mode" value="camera">
+        <span class="fake-radio"></span>
+        <span class="mode-text">Use Camera</span>
+      </label>
+    </div>
+
+    <!-- UPLOAD SECTION -->
+    <div id="upload-section" class="upload-section">
+      <div id="dropzone" class="dropzone glass-card stagger-3">
+        <div class="drop-left">
+          <!-- cloud SVG -->
+          <svg style="filter: drop-shadow(0 0 8px var(--accent-glow));" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="var(--accent)"/>
+            <path d="M9 13v3l2-2 2 2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+
+          <div class="drop-text">
+            <div class="drop-title" style="font-family: var(--font-head); font-weight: 700;">Drag and drop file here</div>
+            <div class="drop-sub">Limit 200MB per file • MP4, AVI, MOV, MPEG4</div>
+          </div>
+        </div>
+
+        <div class="drop-right">
+          <button id="browse-btn" class="btn-primary" type="button">Browse files</button>
+        </div>
+      </div>
+
+      <!-- Results panel (hidden until analysis completes) -->
+      <div id="result-panel" class="card glass-card hidden stagger-4" style="margin-top:24px">
+
+        <!-- Overall stats -->
+        <div class="dip-overall-stats">
+          <div class="dip-stat-row">
+            <span>🏋️ Total Dips:</span>
+            <strong id="dip-count" style="font-family: var(--font-head); font-size: 1.5rem; color: #fff;">–</strong>
+          </div>
+          <div class="dip-stat-row">
+            <span>📈 Estimated Max:</span>
+            <strong id="dip-est-max" style="color: var(--accent);">–</strong>
+          </div>
+          <div class="dip-stat-row">
+            <span>⭐ Avg Form Score:</span>
+            <strong id="dip-avg-form" style="color: #4ade80;">–</strong>
+          </div>
+          <div class="dip-stat-row">
+            <span>📐 Avg Depth (Elbow°):</span>
+            <strong id="dip-avg-depth">–</strong>
+          </div>
+          <div class="dip-stat-row">
+            <span>🔥 Fatigue:</span>
+            <strong id="dip-fatigue" style="color: #facc15;">–</strong>
+            <span id="dip-fatigue-level" style="margin-left:6px;opacity:0.7;font-size:0.8rem;text-transform:uppercase;"></span>
+          </div>
+          <div class="dip-stat-row">
+            <span>💡 Advice:</span>
+            <em id="dip-advice" style="color:var(--text-muted)">–</em>
+          </div>
+        </div>
+
+        <h4 style="margin-top:24px; font-family: var(--font-head); font-size: 1.1rem; margin-bottom: 20px;">Per Rep Analysis</h4>
+        <div style="overflow-x:auto">
+          <table id="rep-table" class="live-rep-table" width="100%">
+            <thead>
+              <tr>
+                <th>Rep</th>
+                <th>Score</th>
+                <th>Depth°</th>
+                <th>Symmetry°</th>
+                <th>Lean°</th>
+                <th>Duration</th>
+                <th>Fatigue</th>
+                <th>Issues</th>
+                <th>Advice</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- hidden file input -->
+      <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
+      <div id="upload-feedback" class="upload-feedback stagger-5">No file selected</div>
+
+      <h3 style="font-family: var(--font-head); margin-top: 24px;">Dip Analysis</h3>
+      <!-- video preview plays immediately and loops -->
+      <div id="preview-wrap" class="preview-wrap hidden glass-card stagger-5">
+        <video id="uploaded-video" autoplay muted playsinline></video>
+        <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
+      </div>
+    </div>
+
+    <!-- CAMERA SECTION (placeholder for future live dip feature) -->
+    <div id="camera-section" class="camera-section hidden">
+      <div class="live-stream-wrap">
+        <div class="live-stream-placeholder">
+          <span class="placeholder-icon">📷</span>
+          Live camera analysis for dips is <strong>coming soon</strong>.<br>
+          Please use <strong>Upload Video</strong> for now.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Floating form notification -->
+<div id="live-alert" class="live-alert"></div>
+
+{% endblock %}
+
+
+{% block scripts %}
+{% load static %}
+<script>
+console.log("🔥 dips.js loaded");
+
+/* ── DOM refs ─────────────────────────────────────────────────── */
+const fileInput      = document.getElementById('file-input');
+const dropzone       = document.getElementById('dropzone');
+const browseBtn      = document.getElementById('browse-btn');
+const uploadFeedback = document.getElementById('upload-feedback');
+const previewWrap    = document.getElementById('preview-wrap');
+const uploadedVideo  = document.getElementById('uploaded-video');
+const cameraSection  = document.getElementById('camera-section');
+const uploadSection  = document.getElementById('upload-section');
+const closeVideoBtn  = document.getElementById('close-video-btn');
+const alertBox       = document.getElementById("live-alert");
+
+const MAX_BYTES    = 200 * 1024 * 1024;
+const ACCEPTED_EXT = ['mp4','avi','mov','mpeg4','m4v','webm'];
+
+/* ── Audio cue (bad form) ─────────────────────────────────────── */
+const alertSound = new Audio("{% static 'Sounds/alert.mp3.mpeg' %}");
+alertSound.preload = "auto";
+let audioStopTimer = null;
+
+/* ── Notification helper ─────────────────────────────────────── */
+let alertTimer = null;
+
+function showFormAlert(type, repNum) {
+  if (alertTimer)    clearTimeout(alertTimer);
+  if (audioStopTimer) clearTimeout(audioStopTimer);
+
+  alertBox.className = "live-alert";
+
+  if (type === "good") {
+    alertBox.textContent = `✅ Good form! (Rep ${repNum})`;
+    alertBox.classList.add("live-alert--good");
+  } else {
+    alertBox.textContent = `⚠️ Bad form — fix it! (Rep ${repNum})`;
+    alertBox.classList.add("live-alert--bad");
+
+    alertSound.pause();
+    alertSound.currentTime = 0;
+    alertSound.play().catch(err => console.warn("🔇 Audio blocked:", err));
+
+    audioStopTimer = setTimeout(() => {
+      alertSound.pause();
+      alertSound.currentTime = 0;
+    }, 1000);
+  }
+
+  void alertBox.offsetHeight;
+  alertBox.classList.add("show");
+
+  alertTimer = setTimeout(() => alertBox.classList.remove("show"), 1200);
+}
+
+/* ── Mode toggle ─────────────────────────────────────────────── */
+document.querySelectorAll('input[name="input-mode"]').forEach(r => {
+  r.addEventListener('change', e => {
+    if (e.target.value === 'upload') {
+      uploadSection.classList.remove('hidden');
+      cameraSection.classList.add('hidden');
+    } else {
+      uploadSection.classList.add('hidden');
+      cameraSection.classList.remove('hidden');
+    }
+  });
+});
+
+/* ── Dropzone ────────────────────────────────────────────────── */
+dropzone.addEventListener('dragover', e => e.preventDefault());
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+browseBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (file) handleFile(file);
+});
+
+/* Track the single timeupdate listener so we can replace it on re-upload */
+let timeupdateHandler = null;
+
+/* ── MAIN HANDLER (Upload mode) ──────────────────────────────── */
+function handleFile(file) {
+  console.log("📤 handleFile called:", file);
+  uploadFeedback.textContent = "Uploading & analyzing… ⏳";
+
+  if (file.size > MAX_BYTES) { alert('File too large — max 200MB.'); return; }
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!ACCEPTED_EXT.includes(ext)) { alert('Invalid file type.'); return; }
+
+  /* Show preview wrapper immediately */
+  previewWrap.classList.remove('hidden');
+  uploadedVideo.pause();
+  uploadedVideo.removeAttribute("src");
+  uploadedVideo.load();
+
+  const fd = new FormData();
+  fd.append('video-blob', file, file.name);
+
+  fetch("{% url 'frontend:upload_dip_ajax' %}", { method: "POST", body: fd })
+    .then(res => { console.log("📡 status:", res.status); return res.json(); })
+    .then(data => {
+      console.log("✅ server data:", data);
+
+      if (!data.ok) {
+        uploadFeedback.textContent = "❌ Error: " + (data.error || "Unknown");
+        alert("Error from server:\n" + (data.error || "Unknown"));
+        return;
+      }
+
+      const r = data.result;
+      const reps    = r.per_rep_analysis || [];
+      const overall = r.overall_analysis || {};
+
+      /* ── Build cumulative-time timeline for form alerts ────── */
+      const timeline = reps.map(rep => ({
+        rep:  rep.rep_number,
+        form: rep.form_score,
+        time: rep.end_time_sec
+      }));
+      console.log("📋 timeline:", timeline);
+
+      /* Remove any previous timeupdate listener */
+      if (timeupdateHandler) {
+        uploadedVideo.removeEventListener("timeupdate", timeupdateHandler);
+        timeupdateHandler = null;
+      }
+
+      let shown = new Set();
+      uploadedVideo.addEventListener("seeked", () => { shown = new Set(); });
+      uploadedVideo.addEventListener("ended",  () => { shown = new Set(); });
+
+      timeupdateHandler = () => {
+        const t = uploadedVideo.currentTime;
+        timeline.forEach(entry => {
+          if (Math.abs(entry.time - t) < 0.5 && !shown.has(entry.rep)) {
+            shown.add(entry.rep);
+            console.log(`🔔 Rep ${entry.rep} | form: ${entry.form}% | t=${t.toFixed(2)}s`);
+
+            if (entry.form >= 80) {
+              showFormAlert("good", entry.rep);
+            } else {
+              showFormAlert("bad",  entry.rep);
+            }
+          }
+        });
+      };
+
+      uploadedVideo.addEventListener("timeupdate", timeupdateHandler);
+
+      /* ── Load & play processed video ────────────────────────── */
+      if (data.processed_video_url) {
+        console.log("🎬 Playing:", data.processed_video_url);
+        uploadedVideo.src      = data.processed_video_url;
+        uploadedVideo.controls = true;
+        uploadedVideo.muted    = false;
+        uploadedVideo.loop     = true;
+        uploadedVideo.load();
+        uploadedVideo.play().catch(err => console.error("❌ Video play failed:", err));
+      } else {
+        console.warn("⚠️ No processed_video_url returned");
+      }
+
+      /* ── Overall metrics ────────────────────────────────────── */
+      document.getElementById("dip-count").textContent    = overall.total_reps || 0;
+      document.getElementById("dip-est-max").textContent  = overall.estimated_max_reps || "–";
+      document.getElementById("dip-avg-form").textContent = (overall.avg_form_score || 0) + "/100";
+      document.getElementById("dip-avg-depth").textContent= (overall.avg_depth_angle || 0) + "°";
+      document.getElementById("dip-fatigue").textContent  = (overall.fatigue_score || 0).toFixed(0) + "%";
+      document.getElementById("dip-fatigue-level").textContent = overall.fatigue_level || "";
+      document.getElementById("dip-advice").textContent   = overall.overall_advice || "–";
+
+      /* ── Per-rep table ──────────────────────────────────────── */
+      const tbody = document.querySelector("#rep-table tbody");
+      tbody.innerHTML = "";
+      reps.forEach(rep => {
+        const scoreColor = rep.form_score >= 80 ? "#4ade80"
+                         : rep.form_score >= 50 ? "#facc15"
+                         : "#f87171";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${rep.rep_number}</td>
+          <td style="color:${scoreColor};font-weight:600">${rep.form_score}/100</td>
+          <td>${rep.min_elbow_angle.toFixed(0)}°</td>
+          <td>${rep.elbow_symmetry.toFixed(1)}°</td>
+          <td>${rep.torso_lean_angle.toFixed(1)}°</td>
+          <td>${rep.duration_sec.toFixed(2)}s</td>
+          <td>${rep.fatigue_at_rep}</td>
+          <td style="font-size:0.8rem;color:var(--muted)">${rep.issues.length ? rep.issues.join(', ') : '✅ Clean'}</td>
+          <td style="font-size:0.8rem;color:var(--accent)">${rep.advice}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("result-panel").classList.remove("hidden");
+      uploadFeedback.textContent = "✅ Analysis complete";
+      console.table(reps);
+    })
+    .catch(err => {
+      console.error("❌ fetch error:", err);
+      uploadFeedback.textContent = "❌ Upload failed (see console)";
+    });
+}
+
+/* ── Close preview ───────────────────────────────────────────── */
+closeVideoBtn.addEventListener('click', () => {
+  uploadedVideo.pause();
+  uploadedVideo.src = '';
+  previewWrap.classList.add('hidden');
+  uploadFeedback.textContent = 'No file selected';
+  alertBox.classList.remove("show");
+});
+
+</script>
+{% endblock %}

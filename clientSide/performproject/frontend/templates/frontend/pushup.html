@@ -6,9 +6,9 @@
 
 {% block content %}
 
-<h1 class="pushup-header">Pushup Training</h1>
-<div class="page-wrap">
-  <div class="card">
+<h1 class="pushup-header stagger-1">Pushup Training</h1>
+<div class="page-wrap stagger-2">
+  <div class="card glass-card">
     <label class="mode-label">Choose input mode:</label>
 
     <div class="mode-row" role="tablist" aria-label="Choose input mode">
@@ -27,59 +27,61 @@
 
     <!-- UPLOAD SECTION -->
     <div id="upload-section" class="upload-section">
-      <div id="dropzone" class="dropzone">
+      <div id="dropzone" class="dropzone glass-card stagger-3">
         <div class="drop-left">
           <!-- cloud SVG -->
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="#cfd6dc"/>
-            <path d="M9 13v3l2-2 2 2v-3" stroke="#1f2937" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg style="filter: drop-shadow(0 0 8px var(--accent-glow));" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="var(--accent)"/>
+            <path d="M9 13v3l2-2 2 2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
 
           <div class="drop-text">
-            <div class="drop-title">Drag and drop file here</div>
+            <div class="drop-title" style="font-family: var(--font-head); font-weight: 700;">Drag and drop file here</div>
             <div class="drop-sub">Limit 200MB per file • MP4, AVI, MOV, MPEG4</div>
           </div>
         </div>
 
         <div class="drop-right">
-          <button id="browse-btn" class="browse-btn" type="button">Browse files</button>
+          <button id="browse-btn" class="btn-primary" type="button">Browse files</button>
         </div>
       </div>
-<div id="result-panel" class="card hidden" style="margin-top:16px">
 
-  <h4>Per Rep Analysis</h4>
-  <table id="rep-table" border="1" width="100%">
-    <thead>
-      <tr>
-        <th>Rep</th>
-        <th>Form %</th>
-        <th>Rating</th>
-        <th>Time (s)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<div id="result-panel" class="card glass-card hidden stagger-4" style="margin-top:24px">
+
+  <h4 style="font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px;">Per Rep Analysis</h4>
+  <div style="overflow-x: auto;">
+    <table id="rep-table" class="live-rep-table" width="100%">
+      <thead>
+        <tr>
+          <th>Rep</th>
+          <th>Form %</th>
+          <th>Rating</th>
+          <th>Time (s)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 
-  
+<div class="pushup-overall-metrics stagger-5" style="margin-top: 24px;">
+  <div class="stat-card glass-card" style="display: flex; flex-direction: column; align-items: flex-start; padding: 20px;">
+    <p style="color: var(--text-muted); font-size: 0.9rem;">🏋️ Total Pushups</p>
+    <strong id="pushup-count" style="font-family: var(--font-head); font-size: 2.5rem; background: linear-gradient(180deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">–</strong>
+  </div>
+  <div class="stat-card glass-card" style="display: flex; flex-direction: column; align-items: flex-start; padding: 20px; margin-top: 15px;">
+    <p style="color: var(--text-muted); font-size: 0.9rem;">📈 Predicted Max</p>
+    <strong id="estimated-range" style="font-family: var(--font-head); font-size: 1.8rem; color: var(--accent);">–</strong>
+  </div>
+  <div class="stat-card glass-card" style="display: flex; flex-direction: column; align-items: flex-start; padding: 20px; margin-top: 15px;">
+    <p style="color: var(--text-muted); font-size: 0.9rem;">🔥 Fatigue Status</p>
+    <div style="display: flex; align-items: baseline; gap: 8px;">
+      <strong id="fatigue" style="font-family: var(--font-head); font-size: 1.8rem; color: #facc15;"></strong>
+      <span id="fatigue-level" style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);"></span>
+    </div>
+  </div>
+</div>
 
-  <p>🏋️ Total Pushups: <strong id="pushup-count">–</strong></p>
-  <p>📈 Predicted Max: <strong id="estimated-range">–</strong></p>
-  <p>🔥 Fatigue: <strong id="fatigue"></strong> 
-     (<span id="fatigue-level"></span>)</p>
-
-  <h4>Per Rep Analysis</h4>
-  <table id="rep-table" border="1" width="100%">
-    <thead>
-      <tr>
-        <th>Rep</th>
-        <th>Form %</th>
-        <th>Rating</th>
-        <th>Time (s)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 </div>
 
 </div>
@@ -90,58 +92,171 @@
 <h3>Pushup Analysis</h3>
       <!-- video preview plays immediately and loops -->
       <div id="preview-wrap" class="preview-wrap hidden">
-        <video id="uploaded-video" autoplay loop muted playsinline></video>
+        <video id="uploaded-video" autoplay muted playsinline></video>
         <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
       </div>
     </div>
 
     <!-- CAMERA SECTION -->
     <div id="camera-section" class="camera-section hidden">
-      <div class="camera-wrap">
-        <video id="camera-stream" autoplay muted playsinline></video>
+
+      <!-- Controls -->
+      <div class="live-controls">
+        <label for="camera-select" style="color:var(--muted);font-size:0.85rem;font-weight:500">Camera:</label>
+        <select id="camera-select" style="background:rgba(255,255,255,0.08);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:0.9rem;cursor:pointer">
+          <option value="0">0 — Default / Built-in</option>
+          <option value="1">1 — External USB</option>
+          <option value="2">2 — Camera 2</option>
+          <option value="3">3 — Camera 3</option>
+        </select>
+        <button id="btn-live-start" class="btn-live-start" type="button">▶ Start Session</button>
+        <button id="btn-live-stop"  class="btn-live-stop"  type="button" disabled>⏹ Stop</button>
+        <span id="live-status" class="live-status-badge live-status-badge--idle">
+          <span class="pulse-dot"></span> Idle
+        </span>
       </div>
-      <!-- <div class="camera-hint">Your camera stream will appear here. Allow camera access when prompted.</div> -->
+
+      <!-- Wrong-exercise banner (hidden by default) -->
+      <div id="live-wrong-banner" class="live-wrong-banner hidden">
+        <span class="wrong-icon">🚫</span>
+        <span id="wrong-text" class="wrong-text"></span>
+      </div>
+
+      <!-- MJPEG stream -->
+      <div class="live-stream-wrap" id="live-stream-wrap">
+        <div id="stream-placeholder" class="live-stream-placeholder">
+          <span class="placeholder-icon">📷</span>
+          Press <strong>Start Session</strong> to begin live analysis
+        </div>
+        <img id="live-stream-img" src="" alt="Live pushup stream" style="display:none" />
+        <div id="live-timer" class="live-timer-overlay hidden">00:00</div>
+      </div>
+
+      <!-- Live stats -->
+      <div id="live-stats-area" class="hidden stagger-3">
+        <div class="live-stats-grid">
+          <div class="live-stat-card glass-card">
+            <div class="live-stat-label">Reps</div>
+            <div id="ls-reps" class="live-stat-value green">0</div>
+          </div>
+          <div class="live-stat-card glass-card">
+            <div class="live-stat-label">Form Score</div>
+            <div id="ls-form" class="live-stat-value cyan">–</div>
+            <div id="ls-grade" class="live-stat-sub"></div>
+          </div>
+          <div class="live-stat-card glass-card">
+            <div class="live-stat-label">State</div>
+            <div id="ls-state" class="live-stat-value blue">UP</div>
+          </div>
+          <div class="live-stat-card glass-card">
+            <div class="live-stat-label">Fatigue</div>
+            <div id="ls-fatigue" class="live-stat-value yellow">0%</div>
+            <div id="ls-fatigue-lvl" class="live-stat-sub">LOW</div>
+          </div>
+        </div>
+
+        <!-- Form issues -->
+        <div id="live-issues" class="live-issues-panel glass-card">
+          <h4 style="font-family: var(--font-head);">Form Feedback</h4>
+          <ul id="live-issues-list" class="live-issues-list">
+            <li class="issue-good">Ready for analysis…</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Final summary (shown after stop) -->
+      <div id="live-final" class="live-final-summary hidden"></div>
+
     </div>
   </div>
+  <div id="live-alert" class="live-alert"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+{% load static %}
 <script>
 console.log("🔥 pushup.js loaded");
 
-/* DOM refs */
-const fileInput = document.getElementById('file-input');
-const dropzone = document.getElementById('dropzone');
-const browseBtn = document.getElementById('browse-btn');
+/* ── DOM refs ─────────────────────────────────────────────────── */
+const fileInput      = document.getElementById('file-input');
+const dropzone       = document.getElementById('dropzone');
+const browseBtn      = document.getElementById('browse-btn');
 const uploadFeedback = document.getElementById('upload-feedback');
-const previewWrap = document.getElementById('preview-wrap');
-const uploadedVideo = document.getElementById('uploaded-video');
-const cameraSection = document.getElementById('camera-section');
-const uploadSection = document.getElementById('upload-section');
-const cameraStream = document.getElementById('camera-stream');
-const closeVideoBtn = document.getElementById('close-video-btn');
+const previewWrap    = document.getElementById('preview-wrap');
+const uploadedVideo  = document.getElementById('uploaded-video');
+const cameraSection  = document.getElementById('camera-section');
+const uploadSection  = document.getElementById('upload-section');
+const closeVideoBtn  = document.getElementById('close-video-btn');
+const alertBox       = document.getElementById("live-alert");
 
-const MAX_BYTES = 200 * 1024 * 1024; // 200MB
+const MAX_BYTES    = 200 * 1024 * 1024;
 const ACCEPTED_EXT = ['mp4','avi','mov','mpeg4','m4v','webm'];
 
-/* Mode toggle */
+/* ── Audio cue (bad form) ─────────────────────────────────────── */
+const alertSound = new Audio("{% static 'Sounds/alert.mp3.mpeg' %}");
+alertSound.preload = "auto";
+let audioStopTimer = null;
+
+/* ── Notification helper ──────────────────────────────────────────
+   type : "good" | "bad"
+   • Notification stays visible for 1.2 s then fades out.
+   • Bad-form audio clip is cut off after 1 s so it never overstays.
+*/
+let alertTimer = null;
+
+function showFormAlert(type, repNum) {
+  /* Cancel any pending hide / audio-stop from the previous alert */
+  if (alertTimer)    clearTimeout(alertTimer);
+  if (audioStopTimer) clearTimeout(audioStopTimer);
+
+  /* Strip old variant classes, set fresh ones */
+  alertBox.className = "live-alert";
+
+  if (type === "good") {
+    alertBox.textContent = `✅ Good form! (Rep ${repNum})`;
+    alertBox.classList.add("live-alert--good");
+  } else {
+    alertBox.textContent = `⚠️ Bad form — fix it! (Rep ${repNum})`;
+    alertBox.classList.add("live-alert--bad");
+
+    /* Play the alert sound, then hard-stop it after 1 s */
+    alertSound.pause();
+    alertSound.currentTime = 0;
+    alertSound.play().catch(err => console.warn("🔇 Audio blocked:", err));
+
+    audioStopTimer = setTimeout(() => {
+      alertSound.pause();
+      alertSound.currentTime = 0;
+    }, 1000);
+  }
+
+  /* Force reflow so the CSS transition fires even when already .show */
+  void alertBox.offsetHeight;
+  alertBox.classList.add("show");
+
+  /* Auto-hide after 1.2 s */
+  alertTimer = setTimeout(() => alertBox.classList.remove("show"), 1200);
+}
+
+/* ── Mode toggle ─────────────────────────────────────────────── */
 document.querySelectorAll('input[name="input-mode"]').forEach(r => {
   r.addEventListener('change', e => {
     if (e.target.value === 'upload') {
       uploadSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
-      stopCamera();
+      /* If a live session is running, stop it when switching away */
+      if (liveRunning) stopLiveSession();
     } else {
       uploadSection.classList.add('hidden');
       cameraSection.classList.remove('hidden');
-      startCamera();
     }
   });
 });
 
-/* Dropzone */
-dropzone.addEventListener('drop', (e) => {
+/* ── Dropzone ────────────────────────────────────────────────── */
+dropzone.addEventListener('dragover', e => e.preventDefault());
+dropzone.addEventListener('drop', e => {
   e.preventDefault();
   const file = e.dataTransfer.files[0];
   if (file) handleFile(file);
@@ -152,142 +267,455 @@ fileInput.addEventListener('change', () => {
   if (file) handleFile(file);
 });
 
-/* MAIN HANDLER */
+/* Track the single timeupdate listener so we can replace it on re-upload */
+let timeupdateHandler = null;
+
+/* ── MAIN HANDLER (Upload mode) ──────────────────────────────── */
 function handleFile(file) {
   console.log("📤 handleFile called:", file);
-
   uploadFeedback.textContent = "Uploading & analyzing… ⏳";
 
-  if (file.size > MAX_BYTES) {
-    alert('File too large — max 200MB.');
-    return;
-  }
-
+  if (file.size > MAX_BYTES) { alert('File too large — max 200MB.'); return; }
   const ext = file.name.split('.').pop().toLowerCase();
-  if (!ACCEPTED_EXT.includes(ext)) {
-    alert('Invalid file type.');
-    return;
-  }
+  if (!ACCEPTED_EXT.includes(ext)) { alert('Invalid file type.'); return; }
 
-previewWrap.classList.remove('hidden');
-uploadedVideo.pause();
-uploadedVideo.removeAttribute("src");
-uploadedVideo.load();
-
+  /* Show preview wrapper immediately */
+  previewWrap.classList.remove('hidden');
+  uploadedVideo.pause();
+  uploadedVideo.removeAttribute("src");
+  uploadedVideo.load();
 
   const fd = new FormData();
   fd.append('video-blob', file, file.name);
 
-  fetch("{% url 'frontend:upload_video_ajax' %}", {
-    method: "POST",
-    body: fd
-  })
-  .then(res => {
-    console.log("📡 response status:", res.status);
-    return res.json();
-  })
-  .then(data => {
-    console.log("✅ server data:", data);
+  fetch("{% url 'frontend:upload_video_ajax' %}", { method: "POST", body: fd })
+    .then(res => { console.log("📡 status:", res.status); return res.json(); })
+    .then(data => {
+      console.log("✅ server data:", data);
 
-    if (!data.ok) {
-      uploadFeedback.textContent = "❌ Error: " + (data.error || "Unknown");
-      alert("Error from server:\n" + (data.error || "Unknown"));
-      return;
-    }
+      if (!data.ok) {
+        uploadFeedback.textContent = "❌ Error: " + (data.error || "Unknown");
+        alert("Error from server:\n" + (data.error || "Unknown"));
+        return;
+      }
 
-    const r = data.result;
-    uploadFeedback.textContent = "✅ Analysis complete";
+      const r = data.result;
 
-// 🧠 new ML results
+      /* ── Build cumulative-time timeline ───────────────────────
+         Each rep's `time` from the API is the duration of that rep.
+         We accumulate to find the absolute video timestamp.        */
+      let cumulative = 0;
+      const timeline = (r.reps || []).map(rep => {
+        cumulative += Number(rep.time) || 0;
+        return { rep: rep.rep, form: Number(rep.form), time: cumulative };
+      });
+      console.log("📋 timeline:", timeline);
 
+      /* Remove any previous timeupdate listener */
+      if (timeupdateHandler) {
+        uploadedVideo.removeEventListener("timeupdate", timeupdateHandler);
+        timeupdateHandler = null;
+      }
 
-// Main metrics
-document.getElementById("pushup-count").textContent = r.pushup_count;
-document.getElementById("estimated-range").textContent = r.estimated_range;
-document.getElementById("fatigue").textContent = r.fatigue;
-document.getElementById("fatigue-level").textContent = r.fatigue_level;
+      /* ── shown-Set tracks which rep alerts already fired this pass ── */
+      let shown = new Set();
 
-// 🎥 PLAY PROCESSED VIDEO (FROM DJANGO MEDIA)
-if (data.processed_video_url) {
-  console.log("🎬 Playing processed video:", data.processed_video_url);
+      /* Reset on seek or loop so alerts fire fresh every time */
+      uploadedVideo.addEventListener("seeked", () => { shown = new Set(); });
+      uploadedVideo.addEventListener("ended",  () => { shown = new Set(); });
 
-  uploadedVideo.src = data.processed_video_url;
-  uploadedVideo.controls = true;
-  uploadedVideo.muted = false;
-  uploadedVideo.loop = true;
+      /* ── timeupdate: trigger alert when playhead nears a rep mark ─ */
+      timeupdateHandler = () => {
+        const t = uploadedVideo.currentTime;
+        timeline.forEach(entry => {
+          /* Window: ±0.5 s around the rep's cumulative timestamp */
+          if (Math.abs(entry.time - t) < 0.5 && !shown.has(entry.rep)) {
+            shown.add(entry.rep);
+            console.log(`🔔 Rep ${entry.rep} | form: ${entry.form}% | t=${t.toFixed(2)}s`);
 
-  uploadedVideo.load();
-  uploadedVideo.play().catch(err => {
-    console.error("❌ Video play failed:", err);
-  });
-} else {
-  console.warn("⚠️ No processed_video_url returned from Django");
+            if (entry.form >= 90) {
+              showFormAlert("good", entry.rep);
+            } else {
+              showFormAlert("bad",  entry.rep);
+            }
+          }
+        });
+      };
+
+      uploadedVideo.addEventListener("timeupdate", timeupdateHandler);
+
+      /* ── Load & play processed video ─────────────────────────── */
+      if (data.processed_video_url) {
+        console.log("🎬 Playing:", data.processed_video_url);
+        uploadedVideo.src      = data.processed_video_url;
+        uploadedVideo.controls = true;
+        uploadedVideo.muted    = false;
+        uploadedVideo.loop     = true;
+        uploadedVideo.load();
+        uploadedVideo.play().catch(err => console.error("❌ Video play failed:", err));
+      } else {
+        console.warn("⚠️ No processed_video_url returned");
+      }
+
+      /* ── Main metrics ─────────────────────────────────────────── */
+      document.getElementById("pushup-count").textContent    = r.pushup_count;
+      document.getElementById("estimated-range").textContent = r.estimated_range;
+      document.getElementById("fatigue").textContent         = r.fatigue;
+      document.getElementById("fatigue-level").textContent   = r.fatigue_level;
+
+      /* ── Rep-wise table ────────────────────────────────────────── */
+      const tbody = document.querySelector("#rep-table tbody");
+      tbody.innerHTML = "";
+      (r.reps || []).forEach(rep => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${rep.rep}</td>
+          <td>${rep.form}%</td>
+          <td>${rep.rating}</td>
+          <td>${rep.time}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("result-panel").classList.remove("hidden");
+      uploadFeedback.textContent = "✅ Analysis complete";
+      console.table(r.reps);
+    })
+    .catch(err => {
+      console.error("❌ fetch error:", err);
+      uploadFeedback.textContent = "❌ Upload failed (see console)";
+    });
 }
 
-
-// Rep-wise table
-const tbody = document.querySelector("#rep-table tbody");
-tbody.innerHTML = "";
-
-(r.reps || []).forEach(rep => {
-
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${rep.rep}</td>
-    <td>${rep.form}%</td>
-    <td>${rep.rating}</td>
-    <td>${rep.time}</td>
-  `;
-  tbody.appendChild(row);
-});
-
-// Show result panel
-document.getElementById("result-panel").classList.remove("hidden");
-
-uploadFeedback.textContent = "✅ Analysis complete";
-
-
-
-// 🧪 rep-wise data (check console for now)
-console.table(r.reps);
-
-// show panel
-document.getElementById("result-panel").classList.remove("hidden");
-
-document.getElementById("result-panel").classList.remove("hidden");
-
-  })
-  .catch(err => {
-    console.error("❌ fetch error:", err);
-    uploadFeedback.textContent = "❌ Upload failed (see console)";
-  });
-}
-
-/* Camera */
-let cameraStreamTrack = null;
-async function startCamera() {
-  try {
-    const s = await navigator.mediaDevices.getUserMedia({ video: true });
-    cameraStream.srcObject = s;
-    cameraStreamTrack = s;
-  } catch {
-    alert("Camera access failed");
-  }
-}
-function stopCamera() {
-  if (cameraStreamTrack) {
-    cameraStreamTrack.getTracks().forEach(t => t.stop());
-    cameraStreamTrack = null;
-  }
-}
-
-/* Close preview */
+/* ── Close preview ───────────────────────────────────────────── */
 closeVideoBtn.addEventListener('click', () => {
   uploadedVideo.pause();
   uploadedVideo.src = '';
   previewWrap.classList.add('hidden');
   uploadFeedback.textContent = 'No file selected';
+  alertBox.classList.remove("show");
 });
 
+
+/* ═══════════════════════════════════════════════════════════════
+   LIVE CAMERA SESSION
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Live DOM refs ──────────────────────────────────────────── */
+const btnStart       = document.getElementById("btn-live-start");
+const btnStop        = document.getElementById("btn-live-stop");
+const liveStatus     = document.getElementById("live-status");
+const streamImg      = document.getElementById("live-stream-img");
+const streamPlaceholder = document.getElementById("stream-placeholder");
+const liveTimerEl    = document.getElementById("live-timer");
+const liveStatsArea  = document.getElementById("live-stats-area");
+const liveFinalEl    = document.getElementById("live-final");
+const wrongBanner    = document.getElementById("live-wrong-banner");
+const wrongText      = document.getElementById("wrong-text");
+
+/* stat value elements */
+const lsReps       = document.getElementById("ls-reps");
+const lsForm       = document.getElementById("ls-form");
+const lsGrade      = document.getElementById("ls-grade");
+const lsState      = document.getElementById("ls-state");
+const lsFatigue    = document.getElementById("ls-fatigue");
+const lsFatigueLvl = document.getElementById("ls-fatigue-lvl");
+const lsIssuesList = document.getElementById("live-issues-list");
+
+let liveRunning    = false;
+let pollInterval   = null;
+let timerInterval  = null;
+let sessionStart   = null;
+let lastKnownReps  = 0;    /* to fire showFormAlert on new reps */
+let lastBadFormAudioTime = 0;  /* cooldown so we don't spam audio every 500ms */
+const BAD_FORM_AUDIO_COOLDOWN = 3000; /* ms between continuous bad-form beeps */
+const LIVE_FORM_THRESHOLD = 90; /* form score below this = bad */
+
+/* ── URLs (Django proxy) ──────────────────────────────────────── */
+const LIVE_START_URL  = "{% url 'frontend:live_start' %}";
+const LIVE_STOP_URL   = "{% url 'frontend:live_stop' %}";
+const LIVE_STATS_URL  = "{% url 'frontend:live_stats' %}";
+const LIVE_STREAM_URL = "{% url 'frontend:live_stream' %}";
+
+/* ── Helpers ──────────────────────────────────────────────────── */
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
+function formColorClass(score) {
+  if (score >= 85) return "green";
+  if (score >= 60) return "cyan";
+  if (score >= 40) return "yellow";
+  return "red";
+}
+
+function setStatusBadge(active) {
+  liveStatus.className = active
+    ? "live-status-badge live-status-badge--active"
+    : "live-status-badge live-status-badge--idle";
+  liveStatus.innerHTML = active
+    ? '<span class="pulse-dot"></span> LIVE'
+    : '<span class="pulse-dot"></span> Idle';
+}
+
+/* ── START SESSION ────────────────────────────────────────────── */
+btnStart.addEventListener("click", async () => {
+  btnStart.disabled = true;
+  btnStart.textContent = "⏳ Starting…";
+  liveFinalEl.classList.add("hidden");
+
+  try {
+    const camIdx = document.getElementById("camera-select").value;
+    const res = await fetch(LIVE_START_URL + "?camera=" + camIdx, { method: "POST" });
+    const data = await res.json();
+    console.log("▶ live/start →", data);
+
+    if (res.status !== 200 || data.status === "error") {
+      alert("Failed to start live session:\n" + (data.message || JSON.stringify(data)));
+      btnStart.disabled = false;
+      btnStart.textContent = "▶ Start Session";
+      return;
+    }
+
+    liveRunning    = true;
+    lastKnownReps  = 0;
+    sessionStart   = Date.now();
+
+    /* UI updates */
+    btnStart.textContent = "▶ Start Session";
+    btnStop.disabled     = false;
+    setStatusBadge(true);
+
+    /* Show the MJPEG stream */
+    streamPlaceholder.style.display = "none";
+    streamImg.src = LIVE_STREAM_URL + "?t=" + Date.now(); /* cache-bust */
+    streamImg.style.display = "block";
+
+    /* Show timer + stats */
+    liveTimerEl.classList.remove("hidden");
+    liveStatsArea.classList.remove("hidden");
+    wrongBanner.classList.add("hidden");
+
+    /* Timer tick (client side) */
+    timerInterval = setInterval(() => {
+      const elapsed = (Date.now() - sessionStart) / 1000;
+      liveTimerEl.textContent = fmtTime(elapsed);
+    }, 500);
+
+    /* Poll stats every 500 ms */
+    pollInterval = setInterval(pollStats, 500);
+
+  } catch (err) {
+    console.error("❌ start failed:", err);
+    alert("Could not reach backend.\nMake sure the FastAPI server is running on port 8000.");
+    btnStart.disabled = false;
+    btnStart.textContent = "▶ Start Session";
+  }
+});
+
+/* ── POLL STATS ────────────────────────────────────────────── */
+async function pollStats() {
+  if (!liveRunning) return;
+  try {
+    const res  = await fetch(LIVE_STATS_URL);
+    if (res.status !== 200) return;
+    const d = await res.json();
+
+    /* Reps */
+    lsReps.textContent = d.pushup_count;
+
+    /* Fire toast when new reps arrive */
+    if (d.pushup_count > lastKnownReps && d.reps && d.reps.length) {
+      const latest = d.reps[d.reps.length - 1];
+      if (latest.form >= 70) {
+        showFormAlert("good", latest.rep);
+      } else {
+        showFormAlert("bad", latest.rep);
+      }
+      lastKnownReps = d.pushup_count;
+    }
+
+    /* Form */
+    const formScore = d.current_form_score ?? 0;
+    lsForm.textContent  = formScore + "%";
+    lsForm.className    = "live-stat-value " + formColorClass(formScore);
+    lsGrade.textContent = d.current_form_grade || "";
+
+    /* ── Continuous bad-form audio cue ──────────────────────────
+       Plays the alert sound whenever the live form score drops
+       below the threshold, with a cooldown to avoid spamming.  */
+    const now = Date.now();
+    if (formScore > 0 && formScore < LIVE_FORM_THRESHOLD
+        && (now - lastBadFormAudioTime) > BAD_FORM_AUDIO_COOLDOWN) {
+      lastBadFormAudioTime = now;
+      alertSound.pause();
+      alertSound.currentTime = 0;
+      alertSound.play().catch(err => console.warn("🔇 Audio blocked:", err));
+      setTimeout(() => { alertSound.pause(); alertSound.currentTime = 0; }, 1000);
+      console.log(`🔊 Bad form audio cue — score=${formScore}%`);
+    }
+    /* Reset cooldown once form recovers so next dip is caught immediately */
+    if (formScore >= LIVE_FORM_THRESHOLD) {
+      lastBadFormAudioTime = 0;
+    }
+
+    /* State */
+    lsState.textContent = d.current_state || "—";
+
+    /* Fatigue */
+    lsFatigue.textContent    = (d.fatigue ?? 0) + "%";
+    lsFatigueLvl.textContent = d.fatigue_level || "";
+
+    /* Issues */
+    const issues = d.current_form_issues || [];
+    if (issues.length) {
+      lsIssuesList.innerHTML = issues.map(i =>
+        `<li class="issue-warn">⚠️ ${i}</li>`
+      ).join("");
+    } else {
+      lsIssuesList.innerHTML = '<li class="issue-good">✅ Great form! Keep it up.</li>';
+    }
+
+    /* Wrong-exercise warning */
+    if (d.wrong_exercise && d.wrong_exercise.active) {
+      wrongBanner.classList.remove("hidden");
+      wrongText.textContent = d.wrong_exercise.warning_message || "Wrong exercise detected!";
+    } else {
+      wrongBanner.classList.add("hidden");
+    }
+
+  } catch (err) {
+    console.warn("⚠️ pollStats error:", err);
+  }
+}
+
+/* ── STOP SESSION ─────────────────────────────────────────────── */
+btnStop.addEventListener("click", () => stopLiveSession());
+
+async function stopLiveSession() {
+  if (!liveRunning) return;
+  liveRunning = false;
+  clearInterval(pollInterval);
+  clearInterval(timerInterval);
+
+  btnStop.disabled  = true;
+  btnStart.disabled = false;
+  setStatusBadge(false);
+
+  /* Hide stream */
+  streamImg.style.display = "none";
+  streamImg.src = "";
+  streamPlaceholder.style.display = "";
+  liveTimerEl.classList.add("hidden");
+  liveStatsArea.classList.add("hidden");
+  wrongBanner.classList.add("hidden");
+
+  try {
+    const res  = await fetch(LIVE_STOP_URL, { method: "POST" });
+    const data = await res.json();
+    console.log("⏹ live/stop →", data);
+    renderFinalSummary(data);
+  } catch (err) {
+    console.error("❌ stop failed:", err);
+  }
+}
+
+/* ── RENDER FINAL SUMMARY ─────────────────────────────────────── */
+function renderFinalSummary(d) {
+  const dur   = d.session_duration_sec || 0;
+  const reps  = d.pushup_count || 0;
+  const oForm = d.overall_form_score || 0;
+  const oGrd  = d.overall_form_grade || "—";
+  const fat   = d.fatigue || 0;
+  const fatLv = d.fatigue_level || "—";
+  const bad   = d.bad_form_reps || 0;
+
+  let html = `
+    <h3>🏁 Session Complete</h3>
+    <div class="summary-grid">
+      <div class="summary-item stagger-1">
+        <div class="summary-label">Duration</div>
+        <div class="summary-value">${fmtTime(dur)}</div>
+      </div>
+      <div class="summary-item stagger-2">
+        <div class="summary-label">Total Reps</div>
+        <div class="summary-value" style="color:#4ade80">${reps}</div>
+      </div>
+      <div class="summary-item stagger-3">
+        <div class="summary-label">Overall Form</div>
+        <div class="summary-value" style="color:#22d3ee">${oForm}%</div>
+        <div class="live-stat-sub">${oGrd}</div>
+      </div>
+      <div class="summary-item stagger-4">
+        <div class="summary-label">Fatigue</div>
+        <div class="summary-value" style="color:#facc15">${fat}%</div>
+        <div class="live-stat-sub">${fatLv}</div>
+      </div>
+      <div class="summary-item stagger-5">
+        <div class="summary-label">Bad Form Reps</div>
+        <div class="summary-value" style="color:#f87171">${bad}</div>
+      </div>
+    </div>
+  `;
+
+  /* Top issues */
+  const topIss = (d.top_form_issues || []);
+  if (topIss.length) {
+    html += `<h4 style="color:var(--text);margin-bottom:12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;font-weight:700">Top Form Issues</h4><div style="margin-bottom:24px">`;
+    topIss.forEach((i, idx) => {
+      html += `<div class="outcome-bar stagger-${(idx%5)+1}">
+                <span>⚠️</span>
+                <span style="flex:1">${i.issue} (×${i.occurrences})</span>
+              </div>`;
+    });
+    html += `</div>`;
+  }
+
+  /* Wrong-exercise events */
+  const wrongEvents = d.wrong_exercise ? d.wrong_exercise.events || [] : [];
+  if (wrongEvents.length) {
+    html += `<h4 style="color:var(--text);margin-bottom:12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;font-weight:700">Wrong Exercise Events (${wrongEvents.length})</h4><div style="margin-bottom:24px">`;
+    wrongEvents.forEach((ev, idx) => {
+      html += `<div class="outcome-bar error stagger-${(idx%5)+1}">
+                <span>🚫</span>
+                <span style="flex:1">${ev.message} — at ${ev.time_sec}s</span>
+              </div>`;
+    });
+    html += `</div>`;
+  }
+
+  /* Rep log table */
+  const repLog = d.reps || [];
+  if (repLog.length) {
+    html += `
+      <h4 style="color:var(--text);margin:24px 0 12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;font-weight:700">Rep-by-Rep Breakdown</h4>
+      <div style="overflow-x:auto">
+        <table class="live-rep-table">
+          <thead><tr>
+            <th>Rep</th><th>Form %</th><th>Grade</th><th>Time (s)</th><th>Good?</th>
+          </tr></thead><tbody>
+      `;
+    repLog.forEach(r => {
+      const good = r.is_good_form ? "✅" : "❌";
+      const color = r.is_good_form ? "#4ade80" : "#f87171";
+      html += `<tr>
+        <td>${r.rep}</td>
+        <td style="color:${color}; font-weight:700;">${r.form}%</td>
+        <td>${r.rating || r.form_grade || "—"}</td>
+        <td>${r.time}s</td>
+        <td>${good}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  liveFinalEl.innerHTML = html;
+  liveFinalEl.classList.remove("hidden");
+  liveFinalEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 </script>
+
 {% endblock %}
