@@ -282,16 +282,27 @@ class LivePushupSession:
     # --------------------------------------------------
     def _run_loop(self):
         print(f"  🎥  Opening camera {self.camera_index}...")
-        cap = cv2.VideoCapture(self.camera_index)
+        # On Windows, CAP_DSHOW often works better for external USB cameras
+        # It prevents long initialization delays and fixes index issues
+        cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
+        
         if not cap.isOpened():
-            print(f"  ❌  Cannot open camera {self.camera_index}")
+            print(f"  ⚠️   CAP_DSHOW failed, trying default backend for camera {self.camera_index}...")
+            cap = cv2.VideoCapture(self.camera_index)
+            
+        if not cap.isOpened():
+            print(f"  ❌  CRITICAL: Cannot open camera {self.camera_index} with any backend")
             self._running = False
             return
-
+            
+        # Optional: Set resolution to ensure camera is active
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        
         w   = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h   = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS) or 30
-        print(f"  ✅  Camera opened — {w}×{h} @ {fps:.0f}fps")
+        print(f"  ✅  Camera {self.camera_index} initialized successfully — {w}x{h} @ {fps:.0f}fps")
 
         pose = mp_pose.Pose(static_image_mode=False,
                             min_detection_confidence=0.5,
