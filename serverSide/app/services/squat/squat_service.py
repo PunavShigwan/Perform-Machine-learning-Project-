@@ -1,13 +1,14 @@
 """
-SQUAT — GRADIENT BOOSTING ANALYZER  v5
+app/services/squat/squat_service.py
+Offline video analysis service for squats.
 
-Changes vs v4:
-  • NO skeleton drawn on frame
-  • "NO ONE DETECTED" banner when no pose found
-  • "NO SQUAT DETECTED" banner when person visible but not in squat position
-  • Confidence/form bar only active when squat is valid
-  • Full 4-step cycle rep counting (DOWN→UP→DOWN→UP)
-  • Video plays at SPEED_MULTIPLIER × speed, saved at original FPS & size
+Runs the Gradient Boosting squat analyser (v5 logic) on a saved video file,
+writes an annotated output video, and returns a structured result dict that
+matches SquatAnalysisResponse schema.
+
+Public API
+──────────
+    result = analyze_squat_video(input_path, output_path)
 """
 
 import cv2
@@ -16,35 +17,27 @@ import numpy as np
 import pandas as pd
 import json
 import pickle
-import time
 import warnings
 import traceback
 from pathlib import Path
-from collections import deque
+from collections import deque, Counter
 
 warnings.filterwarnings("ignore")
 
 # ─────────────────────────────────────────────
-#  CONFIG
+#  MODEL PATHS  (edit to match your deployment)
 # ─────────────────────────────────────────────
-INPUT_VIDEO  = r"C:\major_project\serverSide\ML_Model\pushup_model\testing_video\squat2.mp4"
-GB_MODEL_PKL = r"C:\major_project\serverSide\ML_Model\squat_model\saved_models_v2\GradientBoosting.pkl"
-META_JSON    = r"C:\major_project\serverSide\ML_Model\squat_model\saved_models_v2\best_model_meta.json"
-OUTPUT_VIDEO = r"C:\major_project\serverSide\ML_Model\squat_model\squat_gb_output_v5.mp4"
-
-SPEED_MULTIPLIER = 2.0   # display speed multiplier (output file still saved at real FPS)
+_BASE      = Path(__file__).resolve().parents[3]   # serverSide/
+GB_MODEL   = _BASE / "ML_Model" / "squat_model" / "saved_models_v2" / "GradientBoosting.pkl"
+META_JSON  = _BASE / "ML_Model" / "squat_model" / "saved_models_v2" / "best_model_meta.json"
 
 # ─────────────────────────────────────────────
-#  REP COUNTING THRESHOLDS
+#  THRESHOLDS
 # ─────────────────────────────────────────────
-KNEE_ANGLE_DOWN  = 110   # small angle = bent knees = squatting DOWN
-KNEE_ANGLE_UP    = 155   # large angle = straight knees = standing UP
-FRAME_CONFIRM    = 4
-SMOOTHING_WINDOW = 7
-
-# ─────────────────────────────────────────────
-#  FORM THRESHOLDS
-# ─────────────────────────────────────────────
+KNEE_ANGLE_DOWN     = 110
+KNEE_ANGLE_UP       = 155
+FRAME_CONFIRM       = 4
+SMOOTHING_WINDOW    = 7
 GOOD_FORM_THRESHOLD = 0.65
 MAX_SPINE_LEAN_DEG  = 45.0
 MAX_KNEE_CAVE_RATIO = 0.80
@@ -54,58 +47,57 @@ MIN_DEPTH_ANGLE     = 115.0
 MAX_KNEE_TOE_X_DIFF = 0.12
 FATIGUE_WINDOW      = 5
 
-# ─────────────────────────────────────────────
-#  MEDIAPIPE  (pose only, no drawing)
-# ─────────────────────────────────────────────
 mp_pose = mp.solutions.pose
+
 
 # ─────────────────────────────────────────────
 #  GEOMETRY
 # ─────────────────────────────────────────────
-def compute_angle(a, b, c):
+def _angle(a, b, c):
     a = np.array(a); b = np.array(b); c = np.array(c)
-    ba = a - b; bc = c - b
+    ba = a - b;  bc = c - b
     cos = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc) + 1e-6)
     return float(np.degrees(np.arccos(np.clip(cos, -1.0, 1.0))))
 
-def lm_xy(lm, i):
+def _xy(lm, i):
     return [lm[i].x, lm[i].y]
 
-def get_avg_knee_angle(lm):
-    left  = compute_angle(lm_xy(lm, 23), lm_xy(lm, 25), lm_xy(lm, 27))
-    right = compute_angle(lm_xy(lm, 24), lm_xy(lm, 26), lm_xy(lm, 28))
-    return (left + right) / 2.0
+def _avg_knee_angle(lm):
+    L = _angle(_xy(lm,23), _xy(lm,25), _xy(lm,27))
+    R = _angle(_xy(lm,24), _xy(lm,26), _xy(lm,28))
+    return (L + R) / 2.0
+
 
 # ─────────────────────────────────────────────
 #  FEATURE EXTRACTION
 # ─────────────────────────────────────────────
-def extract_features(lm):
+def _extract_features(lm):
     f = {}
     msx = (lm[11].x + lm[12].x) / 2;  msy = (lm[11].y + lm[12].y) / 2
     mhx = (lm[23].x + lm[24].x) / 2;  mhy = (lm[23].y + lm[24].y) / 2
 
-    f["left_knee_angle"]   = compute_angle(lm_xy(lm,23), lm_xy(lm,25), lm_xy(lm,27))
-    f["right_knee_angle"]  = compute_angle(lm_xy(lm,24), lm_xy(lm,26), lm_xy(lm,28))
+    f["left_knee_angle"]   = _angle(_xy(lm,23), _xy(lm,25), _xy(lm,27))
+    f["right_knee_angle"]  = _angle(_xy(lm,24), _xy(lm,26), _xy(lm,28))
     f["avg_knee_angle"]    = (f["left_knee_angle"] + f["right_knee_angle"]) / 2
     f["knee_angle_diff"]   = abs(f["left_knee_angle"] - f["right_knee_angle"])
 
-    f["left_hip_angle"]    = compute_angle(lm_xy(lm,11), lm_xy(lm,23), lm_xy(lm,25))
-    f["right_hip_angle"]   = compute_angle(lm_xy(lm,12), lm_xy(lm,24), lm_xy(lm,26))
+    f["left_hip_angle"]    = _angle(_xy(lm,11), _xy(lm,23), _xy(lm,25))
+    f["right_hip_angle"]   = _angle(_xy(lm,12), _xy(lm,24), _xy(lm,26))
     f["avg_hip_angle"]     = (f["left_hip_angle"] + f["right_hip_angle"]) / 2
     f["hip_angle_diff"]    = abs(f["left_hip_angle"] - f["right_hip_angle"])
 
-    f["left_trunk_angle"]  = compute_angle(lm_xy(lm,11), lm_xy(lm,23), [lm[23].x, lm[23].y+0.1])
-    f["right_trunk_angle"] = compute_angle(lm_xy(lm,12), lm_xy(lm,24), [lm[24].x, lm[24].y+0.1])
+    f["left_trunk_angle"]  = _angle(_xy(lm,11), _xy(lm,23), [lm[23].x, lm[23].y+0.1])
+    f["right_trunk_angle"] = _angle(_xy(lm,12), _xy(lm,24), [lm[24].x, lm[24].y+0.1])
     f["avg_trunk_angle"]   = (f["left_trunk_angle"] + f["right_trunk_angle"]) / 2
 
-    f["left_ankle_angle"]  = compute_angle(lm_xy(lm,25), lm_xy(lm,27), lm_xy(lm,31))
-    f["right_ankle_angle"] = compute_angle(lm_xy(lm,26), lm_xy(lm,28), lm_xy(lm,32))
+    f["left_ankle_angle"]  = _angle(_xy(lm,25), _xy(lm,27), _xy(lm,31))
+    f["right_ankle_angle"] = _angle(_xy(lm,26), _xy(lm,28), _xy(lm,32))
     f["avg_ankle_angle"]   = (f["left_ankle_angle"] + f["right_ankle_angle"]) / 2
 
     dx, dy = msx - mhx, msy - mhy
     f["spine_lean_angle"]  = float(np.degrees(np.arctan2(abs(dx), abs(dy)+1e-6)))
-    f["left_elbow_angle"]  = compute_angle(lm_xy(lm,11), lm_xy(lm,13), lm_xy(lm,15))
-    f["right_elbow_angle"] = compute_angle(lm_xy(lm,12), lm_xy(lm,14), lm_xy(lm,16))
+    f["left_elbow_angle"]  = _angle(_xy(lm,11), _xy(lm,13), _xy(lm,15))
+    f["right_elbow_angle"] = _angle(_xy(lm,12), _xy(lm,14), _xy(lm,16))
 
     f["left_hip_knee_y_diff"]  = lm[23].y - lm[25].y
     f["right_hip_knee_y_diff"] = lm[24].y - lm[26].y
@@ -141,22 +133,25 @@ def extract_features(lm):
     f["body_height_range"] = max(ys) - min(ys)
     return f
 
+
 # ─────────────────────────────────────────────
-#  SQUAT POSITION VALIDATOR
+#  SQUAT VALIDATOR
 # ─────────────────────────────────────────────
-def is_squat_position(lm):
+def _is_squat_position(lm):
     try:
         l_sh,  r_sh  = lm[11], lm[12]
         l_hip, r_hip = lm[23], lm[24]
         l_kn,  r_kn  = lm[25], lm[26]
         l_an,  r_an  = lm[27], lm[28]
         nose         = lm[0]
+
         mid_sh_y  = (l_sh.y  + r_sh.y)  / 2
         mid_hip_y = (l_hip.y + r_hip.y) / 2
         mid_kn_y  = (l_kn.y  + r_kn.y)  / 2
         mid_an_y  = (l_an.y  + r_an.y)  / 2
         mid_sh_x  = (l_sh.x  + r_sh.x)  / 2
         mid_hip_x = (l_hip.x + r_hip.x) / 2
+
         if not (nose.y < mid_sh_y < mid_hip_y < mid_kn_y < mid_an_y):
             return False
         if mid_sh_y > mid_hip_y - 0.05:
@@ -164,18 +159,19 @@ def is_squat_position(lm):
         vert = abs(mid_hip_y - mid_sh_y) + 1e-6
         if abs(mid_sh_x - mid_hip_x) / vert > 0.60:
             return False
-        if hasattr(l_an, 'visibility') and l_an.visibility < 0.3 and r_an.visibility < 0.3:
+        if hasattr(l_an, "visibility") and l_an.visibility < 0.3 and r_an.visibility < 0.3:
             return False
         if abs(l_kn.x - r_kn.x) < 0.01:
             return False
         return True
-    except:
+    except Exception:
         return False
 
+
 # ─────────────────────────────────────────────
-#  FORM FAULT DETECTOR
+#  FORM FAULTS
 # ─────────────────────────────────────────────
-def detect_form_faults(feats, min_knee_in_rep=999.0, check_depth=False):
+def _detect_faults(feats, min_knee_in_rep=999.0, check_depth=False):
     faults = []
     if feats.get("spine_lean_angle", 0) > MAX_SPINE_LEAN_DEG:
         faults.append("Leaning too far forward")
@@ -191,43 +187,42 @@ def detect_form_faults(feats, min_knee_in_rep=999.0, check_depth=False):
         faults.append("Squat too shallow")
     return faults
 
+
 # ─────────────────────────────────────────────
-#  LOAD MODEL
+#  MODEL LOADER
 # ─────────────────────────────────────────────
-def load_model(pkl_path):
-    p = Path(pkl_path)
-    if not p.exists():
-        print(f"[MODEL] NOT FOUND: {pkl_path}"); return None
-    with open(p, "rb") as fh:
+def _load_model():
+    if not GB_MODEL.exists():
+        raise FileNotFoundError(f"GB model not found: {GB_MODEL}")
+    with open(GB_MODEL, "rb") as fh:
         pipeline = pickle.load(fh)
-    try:    est = type(pipeline.steps[-1][1]).__name__
-    except: est = type(pipeline).__name__
-    print(f"[MODEL] {p.stem}  {p.stat().st_size//1024}KB  estimator={est}")
+    print(f"[squat_service] Model loaded: {GB_MODEL.name}  {GB_MODEL.stat().st_size//1024}KB")
     return pipeline
 
-def load_feature_names(meta_path):
-    if not Path(meta_path).exists(): return None
+def _load_feature_names():
+    if not META_JSON.exists():
+        return None
     try:
-        with open(meta_path) as fh:
+        with open(META_JSON) as fh:
             return json.load(fh).get("feature_names")
-    except: return None
+    except Exception:
+        return None
 
-# ─────────────────────────────────────────────
-#  PREDICTION
-# ─────────────────────────────────────────────
-def predict_prob(pipeline, feature_row, feature_names):
+def _predict_prob(pipeline, feature_row, feature_names):
     try:
-        X = pd.DataFrame([feature_row])[feature_names] if feature_names \
-            else pd.DataFrame([feature_row])
+        X = (pd.DataFrame([feature_row])[feature_names]
+             if feature_names else pd.DataFrame([feature_row]))
         classes = list(pipeline.classes_)
         proba   = pipeline.predict_proba(X)[0]
-        return float(proba[classes.index(1)]) if 1 in classes else float(proba[-1])
-    except: return 0.5
+        return float(proba[classes.index(1)] if 1 in classes else proba[-1])
+    except Exception:
+        return 0.5
+
 
 # ─────────────────────────────────────────────
 #  MAX REPS PREDICTOR
 # ─────────────────────────────────────────────
-def predict_max_reps(rep_history, total_reps):
+def _predict_max_reps(rep_history, total_reps):
     if len(rep_history) < 2:
         return f"~{max(total_reps + 4, 5)}" if total_reps > 0 else "—"
     confs  = [c for _, c in rep_history]
@@ -242,48 +237,38 @@ def predict_max_reps(rep_history, total_reps):
     else:
         return f"~{total_reps + max(1, int(total_reps * 0.1))}"
 
+
 # ─────────────────────────────────────────────
-#  DRAW CENTERED BANNER  (big warning messages)
+#  OVERLAY HELPERS
 # ─────────────────────────────────────────────
-def draw_banner(frame, text, bg_color, text_color):
-    """Draw a full-width semi-transparent banner in the centre of the frame."""
+def _draw_banner(frame, text, bg_color, text_color):
     h, w = frame.shape[:2]
-    font      = cv2.FONT_HERSHEY_DUPLEX
+    font       = cv2.FONT_HERSHEY_DUPLEX
     font_scale = max(0.8, w / 900)
     thickness  = 2
-    ts = cv2.getTextSize(text, font, font_scale, thickness)[0]
-    pad    = 24
-    bh     = ts[1] + pad * 2
-    by     = (h - bh) // 2
-
-    # Semi-transparent background
+    ts  = cv2.getTextSize(text, font, font_scale, thickness)[0]
+    pad = 24
+    bh  = ts[1] + pad * 2
+    by  = (h - bh) // 2
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, by), (w, by + bh), bg_color, -1)
     cv2.addWeighted(overlay, 0.75, frame, 0.25, 0, frame)
-
-    # Text centred
     tx = (w - ts[0]) // 2
     ty = by + pad + ts[1]
     cv2.putText(frame, text, (tx+2, ty+2), font, font_scale, (0,0,0), thickness+2, cv2.LINE_AA)
     cv2.putText(frame, text, (tx,   ty),   font, font_scale, text_color, thickness, cv2.LINE_AA)
 
-# ─────────────────────────────────────────────
-#  MAIN OVERLAY
-# ─────────────────────────────────────────────
-def draw_overlay(frame, total_reps, good_reps, bad_reps,
-                 cur_prob, phase, squat_valid, person_detected,
-                 max_pred, live_faults, smooth_k, phase_steps):
+
+def _draw_overlay(frame, total_reps, good_reps, bad_reps,
+                  cur_prob, phase, squat_valid, person_detected,
+                  max_pred, live_faults, smooth_k, phase_steps):
 
     h, w = frame.shape[:2]
-
-    # ── Determine form state ──────────────────────────────────────
-    # Form bar is only meaningful when a squat is actively being performed
-    # (person detected AND squat position valid AND we are in step 2 or 3)
     form_active = person_detected and squat_valid and (phase_steps >= 2)
     form_good   = form_active and (cur_prob >= GOOD_FORM_THRESHOLD)
     accent      = (0, 220, 80) if form_good else (0, 60, 230)
 
-    # ── Rep count block top-left ──────────────────────────────────
+    # Rep block
     cv2.rectangle(frame, (0, 0), (220, 200), (0, 0, 0), -1)
     cv2.rectangle(frame, (0, 0), (220, 200), accent, 2)
     cv2.putText(frame, str(total_reps),
@@ -295,34 +280,29 @@ def draw_overlay(frame, total_reps, good_reps, bad_reps,
     cv2.putText(frame, f"B:{bad_reps}",
                 (120, 190), cv2.FONT_HERSHEY_SIMPLEX, 0.62, (0,60,230), 2, cv2.LINE_AA)
 
-    # ── Phase indicator top-centre (only when person detected) ────
     if person_detected:
         phase_colors = {
-            "WAIT":           (150, 150, 150),
-            "1: Stand UP":    (0, 200, 255),
-            "2: Squat DOWN":  (0, 100, 255),
-            "3: Stand UP \u2713": (0, 220, 80),
+            "WAIT":              (150, 150, 150),
+            "1: Stand UP":       (0, 200, 255),
+            "2: Squat DOWN":     (0, 100, 255),
+            "3: Stand UP \u2713":(0, 220, 80),
         }
-        pcol = phase_colors.get(phase, (200, 200, 200))
+        pcol = phase_colors.get(phase, (200,200,200))
         pts  = cv2.getTextSize(phase, cv2.FONT_HERSHEY_DUPLEX, 0.85, 2)[0]
         px   = (w - pts[0]) // 2
         cv2.putText(frame, phase, (px+2, 52), cv2.FONT_HERSHEY_DUPLEX, 0.85, (0,0,0), 6, cv2.LINE_AA)
-        cv2.putText(frame, phase, (px,   50), cv2.FONT_HERSHEY_DUPLEX, 0.85, pcol, 2, cv2.LINE_AA)
-
-        # ── Knee angle live ──
+        cv2.putText(frame, phase, (px,   50), cv2.FONT_HERSHEY_DUPLEX, 0.85, pcol,    2, cv2.LINE_AA)
         cv2.putText(frame, f"Knee: {smooth_k:.1f}",
                     (15, 228), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200,200,50), 2, cv2.LINE_AA)
 
-    # ── Step progress bar ─────────────────────────────────────────
-    if person_detected:
-        step_labels = ["▼ DOWN", "▲ UP", "▼ DOWN", "▲ UP = REP"]
+        step_labels = ["\u25bc DOWN", "\u25b2 UP", "\u25bc DOWN", "\u25b2 UP = REP"]
         bar_x = 240; bar_y = 18; box_w = 130; box_h = 30; gap = 8
         for i, lbl in enumerate(step_labels):
             bx       = bar_x + i * (box_w + gap)
-            done     = (i < phase_steps)
-            col_bg   = (0, 160, 60)  if done else (40, 40, 40)
+            done     = i < phase_steps
+            col_bg   = (0,160,60) if done else (40,40,40)
             col_txt  = (255,255,255) if done else (120,120,120)
-            col_bord = (0, 220, 80)  if done else (80, 80, 80)
+            col_bord = (0,220,80)   if done else (80,80,80)
             cv2.rectangle(frame, (bx, bar_y), (bx+box_w, bar_y+box_h), col_bg,   -1)
             cv2.rectangle(frame, (bx, bar_y), (bx+box_w, bar_y+box_h), col_bord,  1)
             ts = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)[0]
@@ -330,134 +310,84 @@ def draw_overlay(frame, total_reps, good_reps, bad_reps,
             ty = bar_y + (box_h + ts[1]) // 2
             cv2.putText(frame, lbl, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.42, col_txt, 1, cv2.LINE_AA)
 
-    # ── Form faults panel right ───────────────────────────────────
-    # Only show when squat is actively in progress
     if form_active and live_faults:
-        panel_x = w - 360
-        panel_y = 10
+        panel_x = w - 360; panel_y = 10
         panel_h = 36 + len(live_faults) * 32
         cv2.rectangle(frame, (panel_x-10, panel_y), (w-10, panel_y+panel_h), (10,10,40), -1)
         cv2.rectangle(frame, (panel_x-10, panel_y), (w-10, panel_y+panel_h), (0,60,230), 2)
         cv2.putText(frame, "FORM ISSUES",
-                    (panel_x, panel_y+26),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.62, (0,120,255), 2, cv2.LINE_AA)
+                    (panel_x, panel_y+26), cv2.FONT_HERSHEY_SIMPLEX, 0.62, (0,120,255), 2, cv2.LINE_AA)
         for i, fault in enumerate(live_faults):
             cv2.putText(frame, f"  * {fault}",
                         (panel_x, panel_y + 26 + (i+1)*30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.55, (80,180,255), 1, cv2.LINE_AA)
 
-    # ── Confidence / form bar bottom ──────────────────────────────
-    bm, bh = 16, 18
-    by     = h - bm - bh
-    bw     = w - 2*bm
-
-    # Background track always visible
-    cv2.rectangle(frame, (bm, by), (bm+bw, by+bh), (30,30,30), -1)
+    bm, bh2 = 16, 18
+    by2 = h - bm - bh2
+    bw  = w - 2*bm
+    cv2.rectangle(frame, (bm, by2), (bm+bw, by2+bh2), (30,30,30), -1)
 
     if form_active:
-        # Fill bar according to model confidence
         fill_w = int(bw * cur_prob)
-        cv2.rectangle(frame, (bm, by), (bm+fill_w, by+bh), accent, -1)
-        # Threshold tick at GOOD_FORM_THRESHOLD
-        tx = bm + int(bw * GOOD_FORM_THRESHOLD)
-        cv2.line(frame, (tx, by-5), (tx, by+bh+5), (255,255,0), 2)
-        # Label
+        cv2.rectangle(frame, (bm, by2), (bm+fill_w, by2+bh2), accent, -1)
+        tx2 = bm + int(bw * GOOD_FORM_THRESHOLD)
+        cv2.line(frame, (tx2, by2-5), (tx2, by2+bh2+5), (255,255,0), 2)
         label = f"{cur_prob*100:.0f}%  {'GOOD FORM' if form_good else 'BAD FORM'}"
-        cv2.putText(frame, label, (bm+4, by-6),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, accent, 2, cv2.LINE_AA)
+        cv2.putText(frame, label, (bm+4, by2-6), cv2.FONT_HERSHEY_SIMPLEX, 0.55, accent, 2, cv2.LINE_AA)
     else:
-        # Bar is greyed out — show why
         if not person_detected:
             bar_msg = "Form bar inactive — no person detected"
         elif not squat_valid:
             bar_msg = "Form bar inactive — get into squat position"
         else:
             bar_msg = "Form bar inactive — waiting for squat"
-        cv2.putText(frame, bar_msg, (bm+4, by-6),
+        cv2.putText(frame, bar_msg, (bm+4, by2-6),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (120,120,120), 1, cv2.LINE_AA)
 
-    # ── Max reps bottom-right ─────────────────────────────────────
     mlabel = f"MAX {max_pred}"
     mt  = cv2.getTextSize(mlabel, cv2.FONT_HERSHEY_DUPLEX, 0.7, 2)[0]
     mx  = w - mt[0] - bm
-    cv2.putText(frame, mlabel, (mx+2, by-8),  cv2.FONT_HERSHEY_DUPLEX, 0.7, (0,0,0),      4, cv2.LINE_AA)
-    cv2.putText(frame, mlabel, (mx,   by-10), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255,200,0),  2, cv2.LINE_AA)
+    cv2.putText(frame, mlabel, (mx+2, by2-8),  cv2.FONT_HERSHEY_DUPLEX, 0.7, (0,0,0),     4, cv2.LINE_AA)
+    cv2.putText(frame, mlabel, (mx,   by2-10), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255,200,0), 2, cv2.LINE_AA)
 
-    # ── Central banners ───────────────────────────────────────────
     if not person_detected:
-        draw_banner(frame,
-                    "NO ONE DETECTED",
-                    (30, 30, 30),
-                    (0, 200, 255))
+        _draw_banner(frame, "NO ONE DETECTED", (30,30,30), (0,200,255))
     elif not squat_valid:
-        draw_banner(frame,
-                    "NO SQUAT DETECTED — STEP INTO POSITION",
-                    (20, 20, 60),
-                    (100, 180, 255))
+        _draw_banner(frame, "NO SQUAT DETECTED — STEP INTO POSITION", (20,20,60), (100,180,255))
+
 
 # ─────────────────────────────────────────────
-#  TERMINAL REPORT
+#  PUBLIC ENTRY POINT
 # ─────────────────────────────────────────────
-def print_report(good_reps, bad_reps, rep_history, fault_log):
-    from collections import Counter
-    total = good_reps + bad_reps
-    print("\n" + "═"*64)
-    print("  SQUAT REPORT  [Gradient Boosting v5]")
-    print("═"*64)
-    print(f"  Total reps    : {total}")
-    print(f"  Good form     : {good_reps}")
-    print(f"  Bad form      : {bad_reps}")
-    if total:
-        print(f"  Form rate     : {good_reps/total*100:.1f}%")
-    print(f"  Predicted max : {predict_max_reps(rep_history, total)}")
-    if rep_history:
-        print("\n  REP LOG")
-        for rno, conf in rep_history:
-            tag  = "GOOD" if conf >= GOOD_FORM_THRESHOLD else "BAD "
-            bar  = "█" * int(conf * 20)
-            fstr = ("  [" + ", ".join(fault_log.get(rno, [])) + "]") \
-                   if fault_log.get(rno) else ""
-            print(f"  Rep {rno:2d}: {conf*100:5.1f}%  [{bar:<20}]  {tag}{fstr}")
-    all_faults = [f for fs in fault_log.values() for f in fs]
-    if all_faults:
-        print("\n  MOST COMMON FAULTS")
-        for fault, cnt in Counter(all_faults).most_common():
-            print(f"    {fault}: {cnt} rep(s)")
-    print("═"*64 + "\n")
+def analyze_squat_video(input_path: str, output_path: str) -> dict:
+    """
+    Analyse a squat video file.
 
-# ─────────────────────────────────────────────
-#  MAIN
-# ─────────────────────────────────────────────
-def main():
-    pipeline = load_model(GB_MODEL_PKL)
-    if pipeline is None: return
-    feature_names = load_feature_names(META_JSON)
+    Parameters
+    ----------
+    input_path  : path to the uploaded video
+    output_path : path where the annotated video will be written
 
-    if not Path(INPUT_VIDEO).exists():
-        print("ERROR: video not found:", INPUT_VIDEO); return
-    cap = cv2.VideoCapture(INPUT_VIDEO)
+    Returns
+    -------
+    dict matching SquatAnalysisResponse schema
+    """
+    pipeline      = _load_model()
+    feature_names = _load_feature_names()
+
+    cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        print("ERROR: cannot open video"); return
+        raise RuntimeError(f"Cannot open video: {input_path}")
 
     SRC_W        = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     SRC_H        = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     SRC_FPS      = cap.get(cv2.CAP_PROP_FPS) or 30.0
     TOTAL_FRAMES = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    FRAME_MS     = 1000.0 / SRC_FPS
-    DISPLAY_MS   = FRAME_MS / SPEED_MULTIPLIER
-
-    print(f"[VIDEO] {SRC_W}x{SRC_H}  {SRC_FPS:.2f}fps  {TOTAL_FRAMES} frames  "
-          f"display={SPEED_MULTIPLIER}x")
 
     fourcc     = cv2.VideoWriter_fourcc(*"mp4v")
-    out_writer = cv2.VideoWriter(OUTPUT_VIDEO, fourcc, SRC_FPS, (SRC_W, SRC_H))
+    out_writer = cv2.VideoWriter(output_path, fourcc, SRC_FPS, (SRC_W, SRC_H))
     if not out_writer.isOpened():
-        print("[WARNING] Output writer failed"); out_writer = None
-    else:
-        print(f"[OUTPUT] {OUTPUT_VIDEO}  {SRC_W}x{SRC_H}  {SRC_FPS:.0f}fps")
-
-    cv2.namedWindow("Squat Analyzer", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Squat Analyzer", min(SRC_W, 1280), min(SRC_H, 720))
+        raise RuntimeError(f"Cannot open output writer: {output_path}")
 
     pose = mp_pose.Pose(
         static_image_mode=False,
@@ -467,29 +397,26 @@ def main():
     )
 
     # ── State ────────────────────────────────────────────────────
-    knee_buf = deque(maxlen=SMOOTHING_WINDOW)
-    smooth_k = 170.0
-
-    # 4-step cycle: 0=WAIT, 1=need UP, 2=need DOWN, 3=need UP→rep
-    cycle_step          = 0
+    knee_buf            = deque(maxlen=SMOOTHING_WINDOW)
+    smooth_k            = 170.0
+    cycle_step          = 0        # 0=WAIT, 1=need UP, 2=need DOWN, 3=need UP→rep
     frames_in_down_zone = 0
     frames_in_up_zone   = 0
 
     good_reps      = 0
     bad_reps       = 0
-    rep_history    = []
-    fault_log      = {}
+    rep_history    = []            # [(rep_no, avg_conf), …]
+    fault_log      = {}            # {rep_no: [fault_str, …]}
     cur_rep_confs  = []
     cur_rep_faults = []
     min_knee       = 999.0
 
-    cur_prob         = 0.5
-    squat_valid      = False
-    person_detected  = False
-    max_pred         = "—"
-    live_faults      = []
-    frame_idx        = 0
-    log_every        = max(1, TOTAL_FRAMES // 10)
+    cur_prob        = 0.5
+    squat_valid     = False
+    person_detected = False
+    max_pred        = "—"
+    live_faults     = []
+    frame_idx       = 0
 
     PHASE_LABEL = {
         0: "WAIT",
@@ -498,48 +425,37 @@ def main():
         3: "3: Stand UP \u2713",
     }
 
-    print(f"\n[RUN] DOWN <= {KNEE_ANGLE_DOWN}°   UP >= {KNEE_ANGLE_UP}°   "
-          f"Rep = full DOWN→UP→DOWN→UP cycle\n")
+    print(f"[squat_service] Processing {TOTAL_FRAMES} frames  {SRC_W}x{SRC_H}  {SRC_FPS:.1f}fps")
 
     while True:
-        t_start = time.perf_counter()
-
         ret, frame = cap.read()
         if not ret or frame is None:
             break
         frame_idx += 1
 
-        if frame_idx % log_every == 0:
-            print(f"  frame {frame_idx}/{TOTAL_FRAMES} ({frame_idx/TOTAL_FRAMES*100:.0f}%)  "
-                  f"step={cycle_step}  knee={smooth_k:.1f}  "
-                  f"person={person_detected}  squat={squat_valid}  "
-                  f"reps={good_reps+bad_reps}")
-
         rgb    = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = pose.process(rgb)
 
-        # ── NO skeleton drawn — we removed all mp_draw calls ─────
-        person_detected = (result.pose_landmarks is not None)
+        person_detected = result.pose_landmarks is not None
 
         if person_detected:
             lm = result.pose_landmarks.landmark
 
-            squat_valid = is_squat_position(lm)
-
-            raw_k = get_avg_knee_angle(lm)
+            squat_valid = _is_squat_position(lm)
+            raw_k       = _avg_knee_angle(lm)
             knee_buf.append(raw_k)
             smooth_k = float(np.mean(knee_buf))
 
             try:
-                feats       = extract_features(lm)
-                cur_prob    = predict_prob(pipeline, feats, feature_names)
-                live_faults = detect_form_faults(feats) if squat_valid else []
+                feats       = _extract_features(lm)
+                cur_prob    = _predict_prob(pipeline, feats, feature_names)
+                live_faults = _detect_faults(feats) if squat_valid else []
             except Exception:
                 feats       = {}
                 cur_prob    = 0.5
                 live_faults = []
 
-            # ── Zone counters ──────────────────────────────────────
+            # Zone counters
             if smooth_k < KNEE_ANGLE_DOWN:
                 frames_in_down_zone += 1
                 frames_in_up_zone    = 0
@@ -547,37 +463,29 @@ def main():
                 frames_in_up_zone   += 1
                 frames_in_down_zone  = 0
             else:
-                frames_in_down_zone  = 0
-                frames_in_up_zone    = 0
+                frames_in_down_zone = 0
+                frames_in_up_zone   = 0
 
-            confirmed_down = (frames_in_down_zone >= FRAME_CONFIRM)
-            confirmed_up   = (frames_in_up_zone   >= FRAME_CONFIRM)
+            confirmed_down = frames_in_down_zone >= FRAME_CONFIRM
+            confirmed_up   = frames_in_up_zone   >= FRAME_CONFIRM
 
-            # ── 4-step cycle ───────────────────────────────────────
+            # 4-step cycle
             if cycle_step == 0:
                 if confirmed_down:
-                    cycle_step          = 1
-                    frames_in_down_zone = 0
-                    print(f"  [CYCLE] 0→1 first DOWN (knee={smooth_k:.1f}°)")
+                    cycle_step = 1; frames_in_down_zone = 0
 
             elif cycle_step == 1:
                 if confirmed_up:
-                    cycle_step        = 2
-                    frames_in_up_zone = 0
-                    print(f"  [CYCLE] 1→2 first UP (knee={smooth_k:.1f}°)")
+                    cycle_step = 2; frames_in_up_zone = 0
 
             elif cycle_step == 2:
-                # Waiting for the squat DOWN — reset rep data
                 cur_rep_confs  = []
                 cur_rep_faults = []
                 min_knee       = 999.0
                 if confirmed_down:
-                    cycle_step          = 3
-                    frames_in_down_zone = 0
-                    print(f"  [CYCLE] 2→3 squat DOWN (knee={smooth_k:.1f}°)")
+                    cycle_step = 3; frames_in_down_zone = 0
 
             elif cycle_step == 3:
-                # Collecting form during squat
                 if squat_valid:
                     cur_rep_confs.append(cur_prob)
                     if smooth_k < min_knee:
@@ -587,15 +495,11 @@ def main():
                             cur_rep_faults.append(fault)
 
                 if confirmed_up:
-                    # ── REP COMPLETE ──────────────────────────────
-                    cycle_step        = 2
-                    frames_in_up_zone = 0
+                    cycle_step = 2; frames_in_up_zone = 0
 
                     avg_conf = float(np.mean(cur_rep_confs)) if cur_rep_confs else 0.5
 
-                    # Depth check
-                    depth_faults = detect_form_faults(
-                        feats if feats else {}, min_knee, check_depth=True)
+                    depth_faults = _detect_faults(feats if feats else {}, min_knee, check_depth=True)
                     for df in depth_faults:
                         if df not in cur_rep_faults:
                             cur_rep_faults.append(df)
@@ -606,23 +510,17 @@ def main():
                     rep_history.append((total_reps, avg_conf))
                     fault_log[total_reps] = list(cur_rep_faults)
 
-                    tag  = "GOOD" if avg_conf >= GOOD_FORM_THRESHOLD else "BAD "
-                    fstr = ", ".join(cur_rep_faults) if cur_rep_faults else "—"
-                    print(f"  [REP {total_reps}] {tag}  {avg_conf*100:.1f}%  "
-                          f"depth={min_knee:.1f}°  [{fstr}]")
-
                     if avg_conf >= GOOD_FORM_THRESHOLD:
                         good_reps += 1
                     else:
                         bad_reps  += 1
 
-                    max_pred       = predict_max_reps(rep_history, total_reps)
+                    max_pred       = _predict_max_reps(rep_history, total_reps)
                     cur_rep_confs  = []
                     cur_rep_faults = []
                     min_knee       = 999.0
 
         else:
-            # No person — reset everything so re-entry is clean
             squat_valid         = False
             cur_prob            = 0.5
             live_faults         = []
@@ -633,36 +531,45 @@ def main():
         phase       = PHASE_LABEL[cycle_step]
         phase_steps = cycle_step
 
-        draw_overlay(frame,
-                     good_reps + bad_reps, good_reps, bad_reps,
-                     cur_prob, phase, squat_valid, person_detected,
-                     max_pred, live_faults, smooth_k, phase_steps)
+        _draw_overlay(frame,
+                      good_reps + bad_reps, good_reps, bad_reps,
+                      cur_prob, phase, squat_valid, person_detected,
+                      max_pred, live_faults, smooth_k, phase_steps)
 
-        if out_writer:
-            out_writer.write(frame)
-
-        cv2.imshow("Squat Analyzer", frame)
-
-        spent_ms = (time.perf_counter() - t_start) * 1000.0
-        wait_ms  = max(1, int(DISPLAY_MS - spent_ms))
-        key = cv2.waitKey(wait_ms) & 0xFF
-        if key in (ord('q'), ord('Q'), 27):
-            print(f"\n[QUIT] at frame {frame_idx}")
-            break
+        out_writer.write(frame)
 
     cap.release()
     pose.close()
-    if out_writer:
-        out_writer.release()
-        print(f"\n[SAVED] {OUTPUT_VIDEO}")
-    cv2.destroyAllWindows()
-    print_report(good_reps, bad_reps, rep_history, fault_log)
+    out_writer.release()
 
+    total_reps = good_reps + bad_reps
+    form_rate  = round(good_reps / total_reps * 100, 1) if total_reps else 0.0
 
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print("ERROR:", e)
-        traceback.print_exc()
-    print("Done.")
+    # Aggregate fault counts
+    all_faults  = [f for fs in fault_log.values() for f in fs]
+    fault_counts = dict(Counter(all_faults).most_common())
+
+    # Per-rep log
+    rep_log = []
+    for rep_no, conf in rep_history:
+        rep_log.append({
+            "rep":       rep_no,
+            "form_score": round(conf * 100, 1),
+            "form_tag":  "GOOD" if conf >= GOOD_FORM_THRESHOLD else "BAD",
+            "faults":    fault_log.get(rep_no, []),
+        })
+
+    result = {
+        "total_reps":        total_reps,
+        "good_reps":         good_reps,
+        "bad_reps":          bad_reps,
+        "form_rate_percent": form_rate,
+        "predicted_max_reps": _predict_max_reps(rep_history, total_reps),
+        "rep_log":           rep_log,
+        "fault_summary":     fault_counts,
+        "processed_video_url": "",  # filled in by API layer
+    }
+
+    print(f"[squat_service] Done — total={total_reps}  good={good_reps}  bad={bad_reps}  "
+          f"form_rate={form_rate}%")
+    return result

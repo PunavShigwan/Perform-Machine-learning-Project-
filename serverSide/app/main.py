@@ -64,6 +64,25 @@ tags_metadata = [
         ),
     },
     {
+        "name": "🦵 Video Analysis — Squat",
+        "description": (
+            "Analyse a **pre-recorded squat video** file. "
+            "Upload a clip and receive rep count, good/bad rep breakdown, "
+            "per-rep fault log, predicted max reps, and a processed output video."
+        ),
+    },
+    {
+        "name": "🔴 Live Camera — Squat",
+        "description": (
+            "Real-time squat tracking via webcam.\n\n"
+            "**Typical flow:**\n"
+            "1. `POST /squat/live/start` — open camera\n"
+            "2. `GET  /squat/live/stream` — embed stream in browser / app\n"
+            "3. `GET  /squat/live/stats`  — poll for live rep & form data\n"
+            "4. `POST /squat/live/stop`   — end session, receive summary"
+        ),
+    },
+    {
         "name": "📁 Video Upload",
         "description": "Generic video upload endpoint. Saves the raw file and a processed copy to the output directory.",
     },
@@ -77,14 +96,16 @@ app = FastAPI(
     description=(
         "AI-powered exercise analysis API.\n\n"
         "Supports both **pre-recorded video analysis** and **live webcam tracking** "
-        "for Pushup, Clean & Jerk, and Dips.\n\n"
+        "for Pushup, Clean & Jerk, Dips, and Squat.\n\n"
         "| Mode | Exercise | Base path |\n"
         "|------|----------|-----------|\n"
         "| Video analysis | Pushup | `/pushup` |\n"
         "| Video analysis | Clean & Jerk | `/weightlifting` |\n"
         "| Video analysis | Dips | `/dips` |\n"
+        "| Video analysis | Squat | `/squat` |\n"
         "| Live camera | Pushup | `/pushup/live` |\n"
-        "| Live camera | Clean & Jerk | `/cleanjerk/live` |"
+        "| Live camera | Clean & Jerk | `/cleanjerk/live` |\n"
+        "| Live camera | Squat | `/squat/live` |"
     ),
     version="1.0.0",
     openapi_tags=tags_metadata,
@@ -152,6 +173,24 @@ except Exception as e:
     print(f"  ❌  ERROR importing dip_api: {e}")
     raise e
 
+# ── Squat (pre-recorded video analysis) ───────────
+try:
+    print("  📦  Importing squat_api (video analysis)...")
+    from app.api.squat_api import router as squat_router
+    print("  ✅  squat_api imported successfully")
+except Exception as e:
+    print(f"  ❌  ERROR importing squat_api: {e}")
+    raise e
+
+# ── Squat Live (webcam / live camera) ─────────────
+try:
+    print("  📦  Importing squat_live_api (live camera)...")
+    from app.api.squat_live_api import router as squat_live_router
+    print("  ✅  squat_live_api imported successfully")
+except Exception as e:
+    print(f"  ❌  ERROR importing squat_live_api: {e}")
+    raise e
+
 # =====================================================
 # REGISTER ROUTERS
 # =====================================================
@@ -196,6 +235,21 @@ app.include_router(
     tags=["💪 Video Analysis — Dips"],
 )
 print("  ✅  /dips                → dip_router")
+
+app.include_router(
+    squat_router,
+    prefix="/squat",
+    tags=["🦵 Video Analysis — Squat"],
+)
+print("  ✅  /squat               → squat_router           (video analysis)")
+
+app.include_router(
+    squat_live_router,
+    prefix="/squat",
+    # tag "🔴 Live Camera — Squat" declared inside the router
+    # full paths: /squat/live/*
+)
+print("  ✅  /squat/live/*        → squat_live_router      (live camera)")
 
 # =====================================================
 # STATIC FILES  (processed video serving)
@@ -265,22 +319,33 @@ def root():
         "docs":   "http://localhost:8000/docs",
         "redoc":  "http://localhost:8000/redoc",
         "endpoints": {
+            # ── Video analysis ──────────────────────────────
             "pushup_video_analyze":    "POST /pushup/analyze",
             "dip_analyze":             "POST /dips/analyze",
             "clean_jerk_analyze":      "POST /weightlifting/clean-jerk/analyze",
+            "squat_video_analyze":     "POST /squat/analyze",
             "upload_video":            "POST /upload-video/",
             "processed_videos":        "GET  /local-videos/<filename>",
+            # ── Live camera — Pushup ────────────────────────
             "pushup_live_start":       "POST /pushup/live/start?camera=0",
             "pushup_live_stop":        "POST /pushup/live/stop",
             "pushup_live_stats":       "GET  /pushup/live/stats",
             "pushup_live_stream":      "GET  /pushup/live/stream   (MJPEG)",
             "pushup_live_health":      "GET  /pushup/live/health",
+            # ── Live camera — Clean & Jerk ──────────────────
             "cleanjerk_live_start":    "POST /cleanjerk/live/start?camera=0",
             "cleanjerk_live_stop":     "POST /cleanjerk/live/stop",
             "cleanjerk_live_reset":    "POST /cleanjerk/live/reset",
             "cleanjerk_live_stats":    "GET  /cleanjerk/live/stats",
             "cleanjerk_live_stream":   "GET  /cleanjerk/live/stream (MJPEG)",
             "cleanjerk_live_health":   "GET  /cleanjerk/live/health",
+            # ── Live camera — Squat ─────────────────────────
+            "squat_live_start":        "POST /squat/live/start?camera=0",
+            "squat_live_stop":         "POST /squat/live/stop",
+            "squat_live_stats":        "GET  /squat/live/stats",
+            "squat_live_stream":       "GET  /squat/live/stream     (MJPEG)",
+            "squat_live_health":       "GET  /squat/live/health",
+            # ── Docs ────────────────────────────────────────
             "swagger_ui":              "GET  /docs",
             "redoc":                   "GET  /redoc",
         }
@@ -302,6 +367,7 @@ async def on_startup():
     print("    POST  http://localhost:8000/pushup/analyze")
     print("    POST  http://localhost:8000/dips/analyze")
     print("    POST  http://localhost:8000/weightlifting/clean-jerk/analyze")
+    print("    POST  http://localhost:8000/squat/analyze")
     print("    POST  http://localhost:8000/upload-video/")
     print("    GET   http://localhost:8000/local-videos/<filename>")
     print()
@@ -319,6 +385,13 @@ async def on_startup():
     print("    GET   http://localhost:8000/cleanjerk/live/stats")
     print("    GET   http://localhost:8000/cleanjerk/live/stream")
     print("    GET   http://localhost:8000/cleanjerk/live/health")
+    print()
+    print("  LIVE CAMERA — SQUAT")
+    print("    POST  http://localhost:8000/squat/live/start?camera=0")
+    print("    POST  http://localhost:8000/squat/live/stop")
+    print("    GET   http://localhost:8000/squat/live/stats")
+    print("    GET   http://localhost:8000/squat/live/stream")
+    print("    GET   http://localhost:8000/squat/live/health")
     print("=" * 60 + "\n")
 
 
@@ -345,6 +418,16 @@ async def on_shutdown():
             print("  ✅  C&J live session stopped cleanly")
     except Exception as e:
         print(f"  ⚠️   Could not stop C&J live session on shutdown: {e}")
+
+    # ── Stop squat live session ────────────────────────────────
+    try:
+        from app.api.squat_live_api import _session as _squat_session
+        if _squat_session and _squat_session._running:
+            print("  ⏹   Stopping active squat live session...")
+            _squat_session.stop()
+            print("  ✅  Squat live session stopped cleanly")
+    except Exception as e:
+        print(f"  ⚠️   Could not stop squat live session on shutdown: {e}")
 
     print("  👋  Goodbye!\n")
 
