@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<h1 class="pushup-header stagger-1">Clean and Jerk Training</h1>
+<h1 class="exercise-page-header stagger-1">Clean and Jerk Training</h1>
 <div class="page-wrap stagger-2">
   <div class="card glass-card">
     <label class="mode-label">Choose input mode:</label>
@@ -29,76 +29,115 @@
     <div id="upload-section" class="upload-section">
       <div id="dropzone" class="dropzone glass-card stagger-3">
         <div class="drop-left">
-          <!-- cloud SVG -->
           <svg style="filter: drop-shadow(0 0 8px var(--accent-glow));" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="var(--accent)"/>
             <path d="M9 13v3l2-2 2 2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-
           <div class="drop-text">
             <div class="drop-title" style="font-family: var(--font-head); font-weight: 700;">Drag and drop file here</div>
             <div class="drop-sub">Limit 200MB per file • MP4, AVI, MOV, MPEG4</div>
           </div>
         </div>
-
         <div class="drop-right">
           <button id="browse-btn" class="btn-primary" type="button">Browse files</button>
         </div>
       </div>
 
-<div id="result-panel" class="card glass-card hidden stagger-4" style="margin-top:24px">
-
-  <div class="stats-grid" style="margin-bottom: 30px;">
-    <div class="stat-card glass-card stagger-1" style="padding: 20px;">
-      <div class="stat-label">Total Frames</div>
-      <div id="pushup-count" class="stat-value" style="font-size: 2rem;">–</div>
-    </div>
-    <div class="stat-card glass-card stagger-2" style="padding: 20px;">
-      <div class="stat-label">Form Accuracy</div>
-      <div id="estimated-range" class="stat-value" style="font-size: 2rem; color: var(--accent);">–</div>
-    </div>
-    <div class="stat-card glass-card stagger-3" style="padding: 20px;">
-      <div class="stat-label">Bad Frames</div>
-      <div id="fatigue" class="stat-value" style="font-size: 2rem; color: #ef4444;"></div>
-      <div id="fatigue-level" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;"></div>
-    </div>
-  </div>
-
-  <h4 style="font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px;">Phase Analysis</h4>
-  <div style="overflow-x: auto;">
-    <table id="rep-table" class="live-rep-table" width="100%">
-      <thead>
-        <tr>
-          <th>Phase</th>
-          <th>Form %</th>
-          <th>Status</th>
-          <th>Duration (s)</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-
-
-
       <!-- hidden file input -->
       <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
       <div id="upload-feedback" class="upload-feedback stagger-5">No file selected</div>
-      <h3 style="font-family: var(--font-head); margin-top: 24px;">Clean & Jerk Analysis</h3>
-      <!-- video preview plays immediately and loops -->
+
+      <h3 class="analysis-title">Clean & Jerk Analysis</h3>
+      <!-- video preview -->
       <div id="preview-wrap" class="preview-wrap hidden glass-card stagger-5">
         <video id="uploaded-video" autoplay loop muted playsinline style="border-radius: 12px;"></video>
         <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
+      </div>
+
+      <div id="result-panel" class="card glass-card hidden stagger-4" style="margin-top:24px">
+
+        <div class="stats-grid" style="margin-bottom: 30px;">
+          <div class="stat-card glass-card stagger-1" style="padding: 20px;">
+            <div class="stat-label">Total Frames</div>
+            <div id="pushup-count" class="stat-value" style="font-size: 2rem;">–</div>
+          </div>
+          <div class="stat-card glass-card stagger-2" style="padding: 20px;">
+            <div class="stat-label">Form Accuracy</div>
+            <div id="estimated-range" class="stat-value" style="font-size: 2rem; color: var(--accent);">–</div>
+          </div>
+          <div class="stat-card glass-card stagger-3" style="padding: 20px;">
+            <div class="stat-label">Bad Frames</div>
+            <div id="fatigue" class="stat-value" style="font-size: 2rem; color: #ef4444;"></div>
+            <div id="fatigue-level" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;"></div>
+          </div>
+        </div>
+
+        <h4 style="font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px;">Phase Analysis</h4>
+        <div style="overflow-x: auto;">
+          <table id="rep-table" class="live-rep-table" width="100%">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Form %</th>
+                <th>Status</th>
+                <th>Duration (s)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <!-- CAMERA SECTION -->
     <div id="camera-section" class="camera-section hidden">
-      <div class="camera-wrap">
-        <video id="camera-stream" autoplay muted playsinline></video>
+      <div class="live-controls" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+        <label for="camera-select" style="color:var(--text-muted);font-size:0.85rem;font-weight:500">Camera:</label>
+        <select id="camera-select" style="background:rgba(255,255,255,0.08);color:var(--text);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;font-size:0.9rem;cursor:pointer">
+          <option value="0">0 — Default / Built-in</option>
+          <option value="1">1 — External USB</option>
+          <option value="2">2 — Camera 2</option>
+          <option value="3">3 — Camera 3</option>
+        </select>
+        <button id="btn-start-live" class="btn-primary" type="button">▶ Start Session</button>
+        <button id="btn-stop-live" class="btn-primary hidden" type="button" style="background: #ef4444;">⏹ Stop Session</button>
+        <button id="btn-reset-live" class="btn-primary hidden" type="button" style="background: #64748b;">🔄 Reset Stats</button>
       </div>
-      <!-- <div class="camera-hint">Your camera stream will appear here. Allow camera access when prompted.</div> -->
+
+      <div id="live-stats-row" class="stats-grid hidden" style="margin-bottom: 20px;">
+        <div class="stat-card glass-card">
+          <div class="stat-label">Phase</div>
+          <div id="live-phase" class="stat-value" style="font-size: 1.5rem;">–</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-label">Form Score</div>
+          <div id="live-form" class="stat-value" style="font-size: 1.5rem; color: var(--accent);">0</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-label">Lift Grade</div>
+          <div id="live-grade" class="stat-value" style="font-size: 1.5rem;">–</div>
+        </div>
+      </div>
+
+      <div class="camera-wrap glass-card" style="position: relative; overflow: hidden;">
+        <img id="live-stream-img" style="width: 100%; display: none; border-radius: 12px;" />
+        <video id="camera-stream" autoplay muted playsinline style="width: 100%; border-radius: 12px;"></video>
+        <div id="live-status-badge" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 8px; color: white; display: none;">Live</div>
+      </div>
+
+      <div id="live-summary" class="hidden" style="margin-top: 30px;">
+        <h4 style="font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px;">Session Summary</h4>
+        <div class="stats-grid" style="margin-bottom: 20px;">
+          <div class="stat-card glass-card">
+            <div class="stat-label">Total Time</div>
+            <div id="summary-time" class="stat-value" style="font-size: 1.5rem;">0s</div>
+          </div>
+          <div class="stat-card glass-card">
+            <div class="stat-label">Overall Form</div>
+            <div id="summary-form" class="stat-value" style="font-size: 1.5rem; color: var(--accent);">0</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -269,9 +308,33 @@ document.getElementById("result-panel").classList.remove("hidden");
   });
 }
 
-/* Camera */
-let cameraStreamTrack = null;
+/* Live Camera Logic */
+let pollInterval = null;
+const btnStartLive = document.getElementById("btn-start-live");
+const btnStopLive = document.getElementById("btn-stop-live");
+const btnResetLive = document.getElementById("btn-reset-live");
+const liveStreamImg = document.getElementById("live-stream-img");
+const liveStatsRow = document.getElementById("live-stats-row");
+const livePhase = document.getElementById("live-phase");
+const liveForm = document.getElementById("live-form");
+const liveGrade = document.getElementById("live-grade");
+const liveSummary = document.getElementById("live-summary");
+const summaryTime = document.getElementById("summary-time");
+const summaryForm = document.getElementById("summary-form");
+const liveStatusBadge = document.getElementById("live-status-badge");
+
 async function startCamera() {
+  // Reset UI
+  liveSummary.classList.add("hidden");
+  liveStatsRow.classList.add("hidden");
+  liveStreamImg.style.display = "none";
+  cameraStream.style.display = "block";
+  btnStartLive.classList.remove("hidden");
+  btnStopLive.classList.add("hidden");
+  btnResetLive.classList.add("hidden");
+  liveStatusBadge.style.display = "none";
+
+  // Start local camera preview just for framing (optional, or just show placeholder)
   try {
     const s = await navigator.mediaDevices.getUserMedia({ video: true });
     cameraStream.srcObject = s;
@@ -280,10 +343,94 @@ async function startCamera() {
     alert("Camera access failed");
   }
 }
+
 function stopCamera() {
   if (cameraStreamTrack) {
     cameraStreamTrack.getTracks().forEach(t => t.stop());
     cameraStreamTrack = null;
+  }
+  stopLiveSession();
+}
+
+btnStartLive.addEventListener("click", async () => {
+  btnStartLive.classList.add("hidden");
+  btnStopLive.classList.remove("hidden");
+  btnResetLive.classList.remove("hidden");
+  liveStatsRow.classList.remove("hidden");
+  liveSummary.classList.add("hidden");
+  liveStatusBadge.style.display = "block";
+
+  // Stop local preview
+  if (cameraStreamTrack) {
+    cameraStreamTrack.getTracks().forEach(t => t.stop());
+    cameraStreamTrack = null;
+  }
+  cameraStream.style.display = "none";
+
+  try {
+    const camIdx = document.getElementById("camera-select").value;
+    const res = await fetch(`{% url 'frontend:cj_live_start' %}?camera=${camIdx}`, { method: "POST" });
+    const data = await res.json();
+    if (data.status === "started") {
+      liveStreamImg.src = "{% url 'frontend:cj_live_stream' %}";
+      liveStreamImg.style.display = "block";
+      pollInterval = setInterval(pollStats, 1000);
+    } else {
+      alert("Error starting live session.");
+      btnStartLive.classList.remove("hidden");
+      btnStopLive.classList.add("hidden");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Backend connection failed.");
+    btnStartLive.classList.remove("hidden");
+    btnStopLive.classList.add("hidden");
+  }
+});
+
+btnStopLive.addEventListener("click", async () => {
+  await stopLiveSession();
+  btnStartLive.classList.remove("hidden");
+  btnStopLive.classList.add("hidden");
+  btnResetLive.classList.add("hidden");
+});
+
+btnResetLive.addEventListener("click", async () => {
+  await fetch("{% url 'frontend:cj_live_reset' %}", { method: "POST" });
+  livePhase.textContent = "–";
+  liveForm.textContent = "0";
+  liveGrade.textContent = "–";
+});
+
+async function pollStats() {
+  try {
+    const res = await fetch("{% url 'frontend:cj_live_stats' %}");
+    const data = await res.json();
+    if (data.status === "active") {
+      livePhase.textContent = data.current_phase || "–";
+      liveForm.textContent = data.form_score || "0";
+      liveGrade.textContent = data.lift_grade || "–";
+    }
+  } catch (err) {
+    console.error("Poll failed", err);
+  }
+}
+
+async function stopLiveSession() {
+  if (pollInterval) clearInterval(pollInterval);
+  liveStreamImg.style.display = "none";
+  liveStreamImg.src = "";
+  liveStatusBadge.style.display = "none";
+  try {
+    const res = await fetch("{% url 'frontend:cj_live_stop' %}", { method: "POST" });
+    const data = await res.json();
+    if (data.status === "stopped") {
+      liveSummary.classList.remove("hidden");
+      summaryTime.textContent = (data.summary.total_duration_sec || 0) + "s";
+      summaryForm.textContent = (data.summary.average_form || 0);
+    }
+  } catch (err) {
+    console.error(err);
   }
 }
 

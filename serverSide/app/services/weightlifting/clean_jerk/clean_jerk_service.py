@@ -79,8 +79,10 @@ except Exception as _e:
     raise
 
 # ─── ML Models ────────────────────────────────────────────────────────────────
-MODEL_PATH     = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\models\best_model.pkl"
-LABEL_MAP_PATH = r"C:\major_project\serverSide\ML_Model\clean_and_jerk_model\models\label_map.pkl"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
+
+MODEL_PATH     = os.path.join(BASE_DIR, "ML_Model", "clean_and_jerk_model", "models", "best_model.pkl")
+LABEL_MAP_PATH = os.path.join(BASE_DIR, "ML_Model", "clean_and_jerk_model", "models", "label_map.pkl")
 
 _ml_model  = None
 _label_map = None

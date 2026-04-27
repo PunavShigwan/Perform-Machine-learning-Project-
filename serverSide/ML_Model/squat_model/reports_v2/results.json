@@ -14,7 +14,7 @@
       1.0,
       0.8957
     ],
-    "train_time_sec": 0.856,
+    "train_time_sec": 1.464,
     "confusion_matrix": [
       [
         49,
@@ -25,7 +25,7 @@
         64
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\RandomForest.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\RandomForest.pkl"
   },
   "GradientBoosting": {
     "accuracy": 1.0,
@@ -42,7 +42,7 @@
       1.0,
       1.0
     ],
-    "train_time_sec": 0.717,
+    "train_time_sec": 1.216,
     "confusion_matrix": [
       [
         49,
@@ -53,7 +53,7 @@
         65
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\GradientBoosting.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\GradientBoosting.pkl"
   },
   "ExtraTrees": {
     "accuracy": 0.9386,
@@ -70,7 +70,7 @@
       0.9825,
       0.5913
     ],
-    "train_time_sec": 0.433,
+    "train_time_sec": 0.511,
     "confusion_matrix": [
       [
         49,
@@ -81,7 +81,7 @@
         58
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\ExtraTrees.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\ExtraTrees.pkl"
   },
   "AdaBoost": {
     "accuracy": 1.0,
@@ -98,7 +98,7 @@
       1.0,
       1.0
     ],
-    "train_time_sec": 0.005,
+    "train_time_sec": 0.011,
     "confusion_matrix": [
       [
         49,
@@ -109,7 +109,7 @@
         65
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\AdaBoost.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\AdaBoost.pkl"
   },
   "LogisticRegression": {
     "accuracy": 0.9561,
@@ -117,16 +117,16 @@
     "precision": 0.9593,
     "recall": 0.9561,
     "roc_auc": 0.9997,
-    "cv_mean": 0.9047,
-    "cv_std": 0.0666,
+    "cv_mean": 0.903,
+    "cv_std": 0.069,
     "cv_folds": [
       0.8718,
-      0.8174,
+      0.8087,
       0.9913,
       0.9737,
       0.8696
     ],
-    "train_time_sec": 0.046,
+    "train_time_sec": 0.039,
     "confusion_matrix": [
       [
         44,
@@ -137,7 +137,7 @@
         65
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\LogisticRegression.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\LogisticRegression.pkl"
   },
   "SVM": {
     "accuracy": 0.9298,
@@ -154,7 +154,7 @@
       0.9298,
       0.6087
     ],
-    "train_time_sec": 0.042,
+    "train_time_sec": 0.033,
     "confusion_matrix": [
       [
         43,
@@ -165,7 +165,7 @@
         63
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\SVM.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\SVM.pkl"
   },
   "KNN": {
     "accuracy": 0.8772,
@@ -182,7 +182,7 @@
       0.9298,
       0.4348
     ],
-    "train_time_sec": 0.003,
+    "train_time_sec": 0.005,
     "confusion_matrix": [
       [
         46,
@@ -193,6 +193,6 @@
         54
       ]
     ],
-    "model_path": "C:\\major_project\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\KNN.pkl"
+    "model_path": "C:\\Users\\rauls\\Desktop\\Perform-Machine-learning-Project- - Copy\\serverSide\\ML_Model\\squat_model\\saved_models_v2\\KNN.pkl"
   }
 }

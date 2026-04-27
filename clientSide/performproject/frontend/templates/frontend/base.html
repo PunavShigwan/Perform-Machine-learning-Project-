@@ -5,13 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}PERFORM AI — AI Personal Trainer{% endblock %}</title>
+  <title>{% block title %}PERFORM — AI Personal Trainer{% endblock %}</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap"
     rel="stylesheet">
 
+  <link rel="icon" type="image/png" href="{% static 'frontend/images/favicon.png' %}">
   <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
 </head>
 
@@ -28,9 +29,9 @@
         <a href="{% url 'frontend:home' %}">Home</a>
         <a href="{% url 'frontend:exercises' %}">Exercises</a>
         <a href="{% url 'frontend:pushup' %}">Push-up</a>
+        <a href="{% url 'frontend:squat' %}">Squat</a>
         <a href="{% url 'frontend:clean_and_jerk' %}">Clean & Jerk</a>
         <a href="{% url 'frontend:dips' %}">Dips</a>
-
       </nav>
     </div>
   </header>
@@ -40,7 +41,7 @@
   </main>
 
   <footer class="footer">
-    <p>Powered by AI Motion Intelligence</p>
+    <p>Major Project Group 21</p>
     <p>© {% now "Y" %} PERFORM AI</p>
   </footer>
 

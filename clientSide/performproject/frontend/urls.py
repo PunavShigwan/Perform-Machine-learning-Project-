@@ -18,4 +18,19 @@ urlpatterns = [
     path("pushup/live/stop/",   views.live_stop,         name="live_stop"),
     path("pushup/live/stats/",  views.live_stats,        name="live_stats"),
     path("pushup/live/stream/", views.live_stream_proxy, name="live_stream"),
+
+    # Squat
+    path('squat/', views.squat, name='squat'),
+    path('upload-squat/', views.upload_squat_ajax, name='upload_squat_ajax'),
+    path('squat/live/start/', views.squat_live_start, name='squat_live_start'),
+    path('squat/live/stop/', views.squat_live_stop, name='squat_live_stop'),
+    path('squat/live/stats/', views.squat_live_stats, name='squat_live_stats'),
+    path('squat/live/stream/', views.squat_live_stream, name='squat_live_stream'),
+
+    # Clean & Jerk Live
+    path('cleanjerk/live/start/', views.cj_live_start, name='cj_live_start'),
+    path('cleanjerk/live/stop/', views.cj_live_stop, name='cj_live_stop'),
+    path('cleanjerk/live/stats/', views.cj_live_stats, name='cj_live_stats'),
+    path('cleanjerk/live/stream/', views.cj_live_stream, name='cj_live_stream'),
+    path('cleanjerk/live/reset/', views.cj_live_reset, name='cj_live_reset'),
 ]

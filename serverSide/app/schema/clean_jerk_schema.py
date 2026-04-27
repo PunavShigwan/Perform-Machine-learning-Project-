@@ -45,6 +45,7 @@ class CleanJerkAnalysisResponse(BaseModel):
     stage_summary:         Dict[str, StageSummary]
     phase_timing:          PhaseTimingAnalysis
     processed_video_path:  Optional[str] = None
+    output_video_path:     Optional[str] = None
 
     class Config:
         extra = "allow"   # prevents crash if service returns extra debug keys

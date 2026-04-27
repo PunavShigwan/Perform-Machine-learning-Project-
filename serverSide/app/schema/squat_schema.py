@@ -35,6 +35,7 @@ class SquatAnalysisResponse(BaseModel):
                                                description="Fault name → occurrence count across all reps")
 
     processed_video_url: str           = Field("", description="URL to the annotated output video")
+    output_video_path:   str           = Field("", description="Absolute local path to the processed video")
 
 
 # ─────────────────────────────────────────────

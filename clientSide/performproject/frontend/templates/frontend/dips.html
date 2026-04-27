@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1 class="pushup-header stagger-1">Tricep Dips Training</h1>
+<h1 class="exercise-page-header stagger-1">Tricep Dips Training</h1>
 <div class="page-wrap stagger-2">
   <div class="card glass-card">
     <label class="mode-label">Choose input mode:</label>
@@ -27,31 +27,39 @@
     <div id="upload-section" class="upload-section">
       <div id="dropzone" class="dropzone glass-card stagger-3">
         <div class="drop-left">
-          <!-- cloud SVG -->
           <svg style="filter: drop-shadow(0 0 8px var(--accent-glow));" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M7 18a4.5 4.5 0 0 1 0-9 5 5 0 0 1 9.9 1A3.5 3.5 0 0 1 21 14.5 3.5 3.5 0 0 1 17.5 18H7z" fill="var(--accent)"/>
             <path d="M9 13v3l2-2 2 2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-
           <div class="drop-text">
             <div class="drop-title" style="font-family: var(--font-head); font-weight: 700;">Drag and drop file here</div>
             <div class="drop-sub">Limit 200MB per file • MP4, AVI, MOV, MPEG4</div>
           </div>
         </div>
-
         <div class="drop-right">
           <button id="browse-btn" class="btn-primary" type="button">Browse files</button>
         </div>
       </div>
 
-      <!-- Results panel (hidden until analysis completes) -->
+      <!-- hidden file input -->
+      <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
+      <div id="upload-feedback" class="upload-feedback stagger-5">No file selected</div>
+
+      <h3 class="analysis-title">Dip Analysis</h3>
+      <!-- video preview -->
+      <div id="preview-wrap" class="preview-wrap hidden glass-card stagger-5">
+        <video id="uploaded-video" autoplay muted playsinline></video>
+        <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
+      </div>
+
+      <!-- Results panel -->
       <div id="result-panel" class="card glass-card hidden stagger-4" style="margin-top:24px">
 
         <!-- Overall stats -->
         <div class="dip-overall-stats">
           <div class="dip-stat-row">
             <span>🏋️ Total Dips:</span>
-            <strong id="dip-count" style="font-family: var(--font-head); font-size: 1.5rem; color: #fff;">–</strong>
+            <strong id="dip-count" style="color: #fff;">–</strong>
           </div>
           <div class="dip-stat-row">
             <span>📈 Estimated Max:</span>
@@ -96,20 +104,9 @@
           </table>
         </div>
       </div>
-
-      <!-- hidden file input -->
-      <input id="file-input" type="file" accept=".mp4,.avi,.mov,.mpeg4" style="display:none" />
-      <div id="upload-feedback" class="upload-feedback stagger-5">No file selected</div>
-
-      <h3 style="font-family: var(--font-head); margin-top: 24px;">Dip Analysis</h3>
-      <!-- video preview plays immediately and loops -->
-      <div id="preview-wrap" class="preview-wrap hidden glass-card stagger-5">
-        <video id="uploaded-video" autoplay muted playsinline></video>
-        <button id="close-video-btn" class="close-video-btn" type="button">✖ Close</button>
-      </div>
     </div>
 
-    <!-- CAMERA SECTION (placeholder for future live dip feature) -->
+    <!-- CAMERA SECTION -->
     <div id="camera-section" class="camera-section hidden">
       <div class="live-stream-wrap">
         <div class="live-stream-placeholder">

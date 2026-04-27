@@ -27,9 +27,10 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────────
 #  MODEL PATHS  (edit to match your deployment)
 # ─────────────────────────────────────────────
-_BASE      = Path(__file__).resolve().parents[3]   # serverSide/
-GB_MODEL   = _BASE / "ML_Model" / "squat_model" / "saved_models_v2" / "GradientBoosting.pkl"
-META_JSON  = _BASE / "ML_Model" / "squat_model" / "saved_models_v2" / "best_model_meta.json"
+import os
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+GB_MODEL   = os.path.join(BASE_DIR, "ML_Model", "squat_model", "saved_models_v2", "GradientBoosting.pkl")
+META_JSON  = os.path.join(BASE_DIR, "ML_Model", "squat_model", "saved_models_v2", "best_model_meta.json")
 
 # ─────────────────────────────────────────────
 #  THRESHOLDS
@@ -192,15 +193,15 @@ def _detect_faults(feats, min_knee_in_rep=999.0, check_depth=False):
 #  MODEL LOADER
 # ─────────────────────────────────────────────
 def _load_model():
-    if not GB_MODEL.exists():
+    if not os.path.exists(GB_MODEL):
         raise FileNotFoundError(f"GB model not found: {GB_MODEL}")
     with open(GB_MODEL, "rb") as fh:
         pipeline = pickle.load(fh)
-    print(f"[squat_service] Model loaded: {GB_MODEL.name}  {GB_MODEL.stat().st_size//1024}KB")
+    print(f"[squat_service] Model loaded: {os.path.basename(GB_MODEL)}  {os.path.getsize(GB_MODEL)//1024}KB")
     return pipeline
 
 def _load_feature_names():
-    if not META_JSON.exists():
+    if not os.path.exists(META_JSON):
         return None
     try:
         with open(META_JSON) as fh:
@@ -384,7 +385,7 @@ def analyze_squat_video(input_path: str, output_path: str) -> dict:
     SRC_FPS      = cap.get(cv2.CAP_PROP_FPS) or 30.0
     TOTAL_FRAMES = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    fourcc     = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc     = cv2.VideoWriter_fourcc(*"avc1")
     out_writer = cv2.VideoWriter(output_path, fourcc, SRC_FPS, (SRC_W, SRC_H))
     if not out_writer.isOpened():
         raise RuntimeError(f"Cannot open output writer: {output_path}")
@@ -568,6 +569,7 @@ def analyze_squat_video(input_path: str, output_path: str) -> dict:
         "rep_log":           rep_log,
         "fault_summary":     fault_counts,
         "processed_video_url": "",  # filled in by API layer
+        "output_video_path": os.path.abspath(output_path)
     }
 
     print(f"[squat_service] Done — total={total_reps}  good={good_reps}  bad={bad_reps}  "

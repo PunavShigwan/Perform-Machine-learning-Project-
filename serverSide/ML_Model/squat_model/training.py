@@ -65,9 +65,10 @@ from sklearn.neighbors         import KNeighborsClassifier
 # =====================================================
 # PATHS  — match the extractor's output paths
 # =====================================================
-CSV_PATH   = r"C:\major_project\serverSide\ML_Model\squat_model\squat_features_v2.csv"
-MODELS_DIR = r"C:\major_project\serverSide\ML_Model\squat_model\saved_models_v2"
-REPORT_DIR = r"C:\major_project\serverSide\ML_Model\squat_model\reports_v2"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_PATH   = os.path.join(_BASE_DIR, "squat_features_v2.csv")
+MODELS_DIR = os.path.join(_BASE_DIR, "saved_models_v2")
+REPORT_DIR = os.path.join(_BASE_DIR, "reports_v2")
 
 # Test set size (fraction of VIDEO GROUPS, not frames)
 TEST_GROUP_FRACTION = 0.20

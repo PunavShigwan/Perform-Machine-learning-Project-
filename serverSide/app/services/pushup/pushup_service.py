@@ -15,11 +15,12 @@ print("📦 Loading pushup_service...")
 # MODEL PATH (DYNAMIC & SAFE)
 # =====================================================
 BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../../../")
+    os.path.join(os.path.dirname(__file__), "../../../")
 )
 
-MODEL_PATH = r"C:\major_project\serverSide\ML_Model\pushup_model\saved_models\GradientBoosting.pkl"
-
+MODEL_PATH = os.path.join(
+    BASE_DIR, "ML_Model", "pushup_model", "saved_models", "GradientBoosting.pkl"
+)
 # =====================================================
 # CONFIG
 # =====================================================

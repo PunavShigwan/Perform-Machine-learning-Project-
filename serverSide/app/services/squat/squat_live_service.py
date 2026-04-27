@@ -32,9 +32,10 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────────
 #  MODEL PATHS
 # ─────────────────────────────────────────────
-_BASE     = Path(__file__).resolve().parents[3]
-GB_MODEL  = _BASE / "ML_Model" / "squat_model" / "saved_models_v2" / "GradientBoosting.pkl"
-META_JSON = _BASE / "ML_Model" / "squat_model" / "saved_models_v2" / "best_model_meta.json"
+import os
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+GB_MODEL  = os.path.join(BASE_DIR, "ML_Model", "squat_model", "saved_models_v2", "GradientBoosting.pkl")
+META_JSON = os.path.join(BASE_DIR, "ML_Model", "squat_model", "saved_models_v2", "best_model_meta.json")
 
 # ─────────────────────────────────────────────
 #  THRESHOLDS  (same as offline service)
@@ -393,12 +394,12 @@ class LiveSquatSession:
         self._start_time: float  = 0.0
 
         # Load model once at construction time
-        if not GB_MODEL.exists():
+        if not os.path.exists(GB_MODEL):
             raise FileNotFoundError(f"GB model not found: {GB_MODEL}")
         with open(GB_MODEL, "rb") as fh:
             self._pipeline = pickle.load(fh)
         self._feature_names = None
-        if META_JSON.exists():
+        if os.path.exists(META_JSON):
             try:
                 with open(META_JSON) as fh:
                     self._feature_names = json.load(fh).get("feature_names")

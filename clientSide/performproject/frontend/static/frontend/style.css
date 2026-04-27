@@ -346,7 +346,7 @@ body::before {
 .video-preview video {
   width: 100%;
   border-radius: 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
 }
 
 /* ================================
@@ -354,11 +354,14 @@ body::before {
 ================================ */
 .footer {
   text-align: center;
-  padding: 30px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.9rem;
+  padding: 40px 30px;
+  border-top: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  margin-top: auto;
 }
+.footer p { margin: 4px 0; }
 
 .hero-section {
   margin-top: 80px;
@@ -374,7 +377,7 @@ body::before {
 .hero-subtitle {
   margin-top: 20px;
   font-size: 1.1rem;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .hero-ctas {
@@ -444,7 +447,7 @@ body::before {
 }
 
 .exercise-header p {
-  color: var(--muted);
+  color: var(--text-muted);
   margin-bottom: 60px;
 }
 
@@ -456,7 +459,7 @@ body::before {
 
 .exercise-card {
   background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 40px 30px;
   text-decoration: none;
@@ -481,7 +484,7 @@ body::before {
 
 .exercise-card p {
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 
@@ -535,11 +538,7 @@ body::before {
   gap: 30px;
 }
 
-.dropzone {
-  text-align: center;
-  padding: 40px;
-  margin-bottom: 20px;
-}
+
 
 .video-preview video {
   width: 100%;
@@ -717,7 +716,7 @@ body::before {
   position: relative;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   background: #000;
   margin-bottom: 24px;
   min-height: 280px;
@@ -768,7 +767,7 @@ body::before {
 }
 .live-stat-card {
   background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 18px 16px;
   text-align: center;
@@ -807,7 +806,7 @@ body::before {
 /* --- Form issues panel --- */
 .live-issues-panel {
   background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 18px 20px;
   margin-bottom: 20px;
@@ -872,7 +871,7 @@ body::before {
 .live-final-summary {
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 40px;
   margin-top: 30px;
@@ -901,7 +900,7 @@ body::before {
   padding: 20px 10px;
   border-radius: 16px;
   background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   transition: transform 0.3s ease;
 }
 .live-final-summary .summary-item:hover {
@@ -954,11 +953,11 @@ body::before {
 .live-rep-table th {
   text-align: left;
   font-size: 0.78rem;
-  color: var(--muted);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 .live-rep-table td {
   padding: 10px 12px;
@@ -1006,6 +1005,7 @@ body::before {
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
 .stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
 
 /* Scroll behavior */
 html {
@@ -1029,3 +1029,318 @@ html {
   background: var(--accent);
 }
 
+/* ================================
+   PAGE WRAP & TRAINING LAYOUT
+================================ */
+.page-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ================================
+   PAGE HEADERS (unified)
+================================ */
+.pushup-header,
+.squat-header,
+.exercise-page-header {
+  font-family: var(--font-head);
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 32px;
+  letter-spacing: -0.5px;
+  background: linear-gradient(180deg, #fff 30%, var(--text-muted) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fadeInUp 0.6s ease backwards;
+}
+
+/* ================================
+   MODE SELECTOR
+================================ */
+.mode-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.mode-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.03);
+  transition: var(--transition);
+  user-select: none;
+}
+.mode-option:hover {
+  border-color: var(--glass-border-bright);
+  background: rgba(255,255,255,0.06);
+}
+.mode-option input[type="radio"] {
+  display: none;
+}
+.mode-option input[type="radio"]:checked ~ .fake-radio {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.mode-option input[type="radio"]:checked ~ .fake-radio::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.mode-option input[type="radio"]:checked ~ .mode-text {
+  color: var(--text);
+}
+.fake-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border-bright);
+  background: transparent;
+  position: relative;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.fake-radio::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  transition: var(--transition);
+}
+.mode-text {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+/* ================================
+   UPLOAD SECTION
+================================ */
+.upload-section {
+  animation: fadeInUp 0.5s ease backwards;
+}
+
+.dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 32px;
+  border: 2px dashed var(--glass-border-bright);
+  border-radius: 18px;
+  margin-bottom: 24px;
+  transition: var(--transition);
+  cursor: default;
+}
+.dropzone:hover {
+  border-color: var(--accent);
+  background: rgba(59,130,246,0.04);
+}
+.drop-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.drop-title {
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.drop-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ================================
+   UPLOAD FEEDBACK
+================================ */
+.upload-feedback {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 10px 0;
+  margin-bottom: 8px;
+}
+
+/* ================================
+   VIDEO PREVIEW
+================================ */
+.preview-wrap {
+  position: relative;
+  margin-top: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--glass-border);
+}
+.preview-wrap video {
+  width: 100%;
+  display: block;
+  border-radius: 16px;
+}
+.close-video-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 10;
+}
+.close-video-btn:hover {
+  background: rgba(239,68,68,0.8);
+  border-color: rgba(239,68,68,0.5);
+}
+
+/* ================================
+   OVERALL METRICS (pushup/squat)
+================================ */
+.pushup-overall-metrics,
+.squat-overall-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+  animation: fadeInUp 0.6s ease backwards;
+}
+.pushup-overall-metrics .stat-card,
+.squat-overall-metrics .stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 22px;
+  margin-top: 0 !important;
+}
+@media (max-width: 700px) {
+  .pushup-overall-metrics,
+  .squat-overall-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================================
+   DIP STATS
+================================ */
+.dip-overall-stats {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.dip-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.dip-stat-row:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--glass-border-bright);
+}
+.dip-stat-row strong {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+}
+
+/* ================================
+   CAMERA SECTION
+================================ */
+.camera-section {
+  animation: fadeInUp 0.5s ease backwards;
+}
+.camera-wrap {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: #000;
+  margin-bottom: 24px;
+}
+
+/* ================================
+   ANALYSIS SECTION HEADER
+================================ */
+.analysis-title {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+/* ================================
+   RESPONSIVE NAV
+================================ */
+@media (max-width: 768px) {
+  .nav-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .nav-links {
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .navbar {
+    padding: 12px 20px;
+  }
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-card {
+    padding: 40px 24px;
+  }
+  .main-container {
+    padding: 0 16px;
+    margin: 24px auto;
+  }
+  .exercise-grid {
+    grid-template-columns: 1fr;
+  }
+  .live-final-summary .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dropzone {
+    flex-direction: column;
+    text-align: center;
+  }
+  .drop-left {
+    flex-direction: column;
+  }
+  .mode-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

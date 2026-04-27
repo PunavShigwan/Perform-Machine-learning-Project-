@@ -1,6 +1,6 @@
 =================================================================
   SQUAT ML TRAINING REPORT  v2  (Group-Based, No Leakage)
-  Generated : 2026-03-09 12:25:22
+  Generated : 2026-04-27 00:49:04
 =================================================================
 
   SPLIT METHOD : GroupShuffleSplit (by video group)
@@ -27,7 +27,7 @@
   ROC-AUC         : 1.0000
   GroupKFold CV   : 0.9723 +/- 0.0405
   CV Folds        : [0.9658, 1.0, 1.0, 1.0, 0.8957]
-  Train time      : 0.86s
+  Train time      : 1.46s
 
   Classification Report:
               precision    recall  f1-score   support
@@ -49,7 +49,7 @@ weighted avg       0.99      0.99      0.99       114
   ROC-AUC         : 1.0000
   GroupKFold CV   : 0.9966 +/- 0.0068
   CV Folds        : [0.9829, 1.0, 1.0, 1.0, 1.0]
-  Train time      : 0.72s
+  Train time      : 1.22s
 
   Classification Report:
               precision    recall  f1-score   support
@@ -71,7 +71,7 @@ weighted avg       1.00      1.00      1.00       114
   ROC-AUC         : 0.9983
   GroupKFold CV   : 0.8422 +/- 0.1339
   CV Folds        : [0.8462, 0.8696, 0.9217, 0.9825, 0.5913]
-  Train time      : 0.43s
+  Train time      : 0.51s
 
   Classification Report:
               precision    recall  f1-score   support
@@ -113,9 +113,9 @@ weighted avg       1.00      1.00      1.00       114
   Precision       : 0.9593
   Recall          : 0.9561
   ROC-AUC         : 0.9997
-  GroupKFold CV   : 0.9047 +/- 0.0666
-  CV Folds        : [0.8718, 0.8174, 0.9913, 0.9737, 0.8696]
-  Train time      : 0.05s
+  GroupKFold CV   : 0.9030 +/- 0.0690
+  CV Folds        : [0.8718, 0.8087, 0.9913, 0.9737, 0.8696]
+  Train time      : 0.04s
 
   Classification Report:
               precision    recall  f1-score   support
@@ -137,7 +137,7 @@ weighted avg       0.96      0.96      0.96       114
   ROC-AUC         : 0.9918
   GroupKFold CV   : 0.8282 +/- 0.1142
   CV Folds        : [0.8547, 0.8435, 0.9043, 0.9298, 0.6087]
-  Train time      : 0.04s
+  Train time      : 0.03s
 
   Classification Report:
               precision    recall  f1-score   support
@@ -159,7 +159,7 @@ weighted avg       0.93      0.93      0.93       114
   ROC-AUC         : 0.9385
   GroupKFold CV   : 0.7656 +/- 0.1736
   CV Folds        : [0.8632, 0.8348, 0.7652, 0.9298, 0.4348]
-  Train time      : 0.00s
+  Train time      : 0.01s
 
   Classification Report:
               precision    recall  f1-score   support

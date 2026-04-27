@@ -10,6 +10,7 @@ FASTAPI_BASE = "http://localhost:8000"
 FASTAPI_ANALYZE_URL = f"{FASTAPI_BASE}/pushup/analyze"
 FASTAPI_CLEAN_JERK_URL = f"{FASTAPI_BASE}/weightlifting/clean-jerk/analyze"
 FASTAPI_DIP_URL = f"{FASTAPI_BASE}/dips/analyze"
+FASTAPI_SQUAT_URL = f"{FASTAPI_BASE}/squat/analyze"
 
 
 def home(request):
@@ -22,6 +23,9 @@ def exercises(request):
 
 def pushup(request):
     return render(request, "frontend/pushup.html")
+
+def squat(request):
+    return render(request, "frontend/squat.html")
 
 def clean_and_jerk(request):
     return render(request, "frontend/clean_and_jerk.html")
@@ -242,5 +246,143 @@ def live_stream_proxy(request):
             content_type=r.headers.get("content-type", "multipart/x-mixed-replace; boundary=frame"),
         )
         return response
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+
+# =====================================================
+# SQUAT — AJAX Upload & Live Proxy
+# =====================================================
+
+@csrf_exempt
+def upload_squat_ajax(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+
+    video = request.FILES.get("video-blob") or request.FILES.get("video")
+    if not video:
+        return JsonResponse({"ok": False, "error": "No video received"}, status=400)
+
+    try:
+        response = requests.post(
+            FASTAPI_SQUAT_URL,
+            files={"video": (video.name, video.read(), video.content_type)},
+            timeout=300
+        )
+        response.raise_for_status()
+        result = response.json()
+
+        processed_path = result.get("output_video_path")
+        if not processed_path:
+            return JsonResponse({"ok": False, "error": "FastAPI did not return output path"}, status=500)
+
+        processed_path = os.path.normpath(processed_path)
+        if not os.path.exists(processed_path):
+            return JsonResponse({"ok": False, "error": f"Processed video not found: {processed_path}"}, status=500)
+
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+        filename = os.path.basename(processed_path)
+        dest_path = os.path.join(settings.MEDIA_ROOT, filename)
+        shutil.copy(processed_path, dest_path)
+
+        return JsonResponse({
+            "ok": True,
+            "processed_video_url": settings.MEDIA_URL + filename,
+            "result": result
+        })
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+@csrf_exempt
+def squat_live_start(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+    camera = request.GET.get("camera", "0")
+    try:
+        r = requests.post(f"{FASTAPI_BASE}/squat/live/start", params={"camera": camera}, timeout=10)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+@csrf_exempt
+def squat_live_stop(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+    try:
+        r = requests.post(f"{FASTAPI_BASE}/squat/live/stop", timeout=10)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+def squat_live_stats(request):
+    try:
+        r = requests.get(f"{FASTAPI_BASE}/squat/live/stats", timeout=5)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+def squat_live_stream(request):
+    try:
+        r = requests.get(f"{FASTAPI_BASE}/squat/live/stream", stream=True, timeout=5)
+        if r.status_code != 200:
+            return JsonResponse({"ok": False, "error": "Stream not available"}, status=r.status_code)
+        return StreamingHttpResponse(
+            r.iter_content(chunk_size=4096),
+            content_type=r.headers.get("content-type", "multipart/x-mixed-replace; boundary=frame"),
+        )
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+# =====================================================
+# CLEAN & JERK LIVE — Proxy
+# =====================================================
+
+@csrf_exempt
+def cj_live_start(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+    camera = request.GET.get("camera", "0")
+    try:
+        r = requests.post(f"{FASTAPI_BASE}/cleanjerk/live/start", params={"camera": camera}, timeout=10)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+@csrf_exempt
+def cj_live_stop(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+    try:
+        r = requests.post(f"{FASTAPI_BASE}/cleanjerk/live/stop", timeout=10)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+@csrf_exempt
+def cj_live_reset(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=400)
+    try:
+        r = requests.post(f"{FASTAPI_BASE}/cleanjerk/live/reset", timeout=10)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+def cj_live_stats(request):
+    try:
+        r = requests.get(f"{FASTAPI_BASE}/cleanjerk/live/stats", timeout=5)
+        return JsonResponse(r.json(), status=r.status_code)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+
+def cj_live_stream(request):
+    try:
+        r = requests.get(f"{FASTAPI_BASE}/cleanjerk/live/stream", stream=True, timeout=5)
+        if r.status_code != 200:
+            return JsonResponse({"ok": False, "error": "Stream not available"}, status=r.status_code)
+        return StreamingHttpResponse(
+            r.iter_content(chunk_size=4096),
+            content_type=r.headers.get("content-type", "multipart/x-mixed-replace; boundary=frame"),
+        )
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=502)

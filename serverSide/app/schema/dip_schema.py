@@ -70,6 +70,7 @@ class OverallAnalysis(BaseModel):
 
 class DipAnalysisResponse(BaseModel):
     processed_video_url: str
+    output_video_path:   str = ""
     overall_analysis:    OverallAnalysis
     per_rep_analysis:    List[RepAnalysis]
     summary:             str
